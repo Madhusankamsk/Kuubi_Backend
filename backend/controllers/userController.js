@@ -11,12 +11,11 @@ const authUser = asyncHandler(async (req, res) => {
   const user = await User.findOne({ email });
 
   if (user && (await user.matchPassword(password))) {
-    generateToken(res, user._id);
-
     res.json({
       _id: user._id,
       name: user.name,
       email: user.email,
+      token : generateToken(res, user._id),
     });
   } else {
     res.status(401);
@@ -28,8 +27,8 @@ const authUser = asyncHandler(async (req, res) => {
 // @route   POST /api/users
 // @access  Public
 const registerUser = asyncHandler(async (req, res) => {
-  const { name, email, password } = req.body;
-  console.log(req.body);
+  const { firstName,lastName,email,password,birthday } = req.body;
+ // console.log(req.body);
   const userExists = await User.findOne({ email });
 
   if (userExists) {
@@ -38,17 +37,19 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 
   const user = await User.create({
-    name,
+    firstName,
+    lastName,
     email,
     password,
+    birthday
   });
 
   if (user) {
-    generateToken(res, user._id);
     res.status(201).json({
       _id: user._id,
       name: user.name,
       email: user.email,
+      token: generateToken(res, user._id),
     });
   } else {
     res.status(400);

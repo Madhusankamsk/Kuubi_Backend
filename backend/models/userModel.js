@@ -3,7 +3,11 @@ import bcrypt from 'bcryptjs';
 
 const userSchema = mongoose.Schema(
   {
-    name: {
+    firstName: {
+      type: String,
+      required: true,
+    },
+    lastName: {
       type: String,
       required: true,
     },
@@ -16,18 +20,22 @@ const userSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+    birthday: {
+      type: Date,
+      required: true,
+    },
   },
   {
     timestamps: true,
   }
 );
 
-// Match user entered password to hashed password in database
+// Match user entered password to hashed password in the database
 userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-// Encrypt password using bcrypt
+// Encrypt password using bcrypt before saving
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) {
     next();
