@@ -24,6 +24,10 @@ const userSchema = mongoose.Schema(
       type: Date,
       required: true,
     },
+    addedMoments:{
+      type: [String],
+      default: [],
+    }
   },
   {
     timestamps: true,
