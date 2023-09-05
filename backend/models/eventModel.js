@@ -64,7 +64,6 @@ const eventSchema = mongoose.Schema(
             type: Number,
             default: 0,
         },
-
         entrancefee: {
             type: Boolean,
             required: true,
@@ -81,6 +80,7 @@ const eventSchema = mongoose.Schema(
             type: Number,
             default: 0,
         },
+        /////////
         interestedCount: {
             type: Number,
             default: 0,

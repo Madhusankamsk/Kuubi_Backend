@@ -23,12 +23,14 @@ const addMoment = asyncHandler(async (req, res) => {
         gallery
     } = req.body;
 
+   // console.log(req.body);
+
     const token = req.header('Authorization').replace('Bearer ', '');
-    //console.log(token);
+   // console.log(token);
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET); 
        // console.log(decoded);
-       // console.log(decoded.userId);
+        console.log(decoded.userId);
         // Create a new event using the Event model
         const newEvent = await Event.create({
             privacy,
@@ -48,6 +50,8 @@ const addMoment = asyncHandler(async (req, res) => {
             ticketprice,
             gallery
         });
+
+        console.log(newEvent);
 
         // Update the user's addedMoments array
         const user = await User.findById(decoded.userId);
@@ -75,6 +79,7 @@ const addMoment = asyncHandler(async (req, res) => {
 
 const getMoments = asyncHandler(async (req, res) => {
     //const { id } = req.params;
+    console.log("Hello");
     try {
         //whole events list fetch
         const events = await Event.find({})
@@ -111,5 +116,23 @@ const getEachMoment = asyncHandler(async (req, res) => {
     }
 });
 
+const getPost = asyncHandler(async (req, res) => {
+    try {
+        //whole events list fetch
+        const event = await Event.find({}).sort({ createdAt: -1 });
+        res.status(200).json({
+            success: true,
+            message: "Event fetched successfully",
+            data: event
+        });
+    }catch(error){
+        res.status(500).json({
+            success: false,
+            message: "Event fetching failed",
+            error: error.message
+        });
+    }
+})
 
-export {addMoment,getMoments,getEachMoment};
+
+export {addMoment,getMoments,getEachMoment,getPost};
