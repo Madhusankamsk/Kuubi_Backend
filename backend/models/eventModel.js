@@ -19,7 +19,7 @@ const eventSchema = mongoose.Schema(
             required: true,
         },
         date: {
-            type: Date,
+            type: String,
             required: true,
         },
         time: {
@@ -57,12 +57,12 @@ const eventSchema = mongoose.Schema(
             required: true,
         },
         like: {
-            type: Number,
-            default: 0,
+            type: [String],
+            default: [],
         },
         dislike: {
-            type: Number,
-            default: 0,
+            type: [String],
+            default: [],
         },
         entrancefee: {
             type: Boolean,
@@ -80,7 +80,6 @@ const eventSchema = mongoose.Schema(
             type: Number,
             default: 0,
         },
-        /////////
         interestedCount: {
             type: Number,
             default: 0,
