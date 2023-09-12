@@ -100,10 +100,11 @@ const getEachMoment = asyncHandler(async (req, res) => {
     try {
         //whole events list fetch
         const event = await Event.findById(id)
+        const user = await User.findById(userId);
         res.status(200).json({
             success: true,
             message: "Event fetched successfully",
-            data: { event, like: event.like.includes(userId), dislike: event.dislike.includes(userId)}
+            data: { event, like: event.like.includes(userId), dislike: event.dislike.includes(userId),user:user}
         });
     } catch (error) {
         res.status(500).json({
