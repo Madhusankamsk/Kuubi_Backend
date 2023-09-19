@@ -227,7 +227,7 @@ const getMyMoments = asyncHandler(async (req, res) => {
 
 const deleteEvent = asyncHandler(async (req, res) => {
     const { id } = req.params;  // Assuming the event ID is in the URL parameters
-
+    console.log(id);
     try {
         // Find the event by ID and delete it
         await Event.findByIdAndDelete(id);
@@ -245,6 +245,74 @@ const deleteEvent = asyncHandler(async (req, res) => {
     }
 });
 
+const updateMoment = asyncHandler(async (req, res) => {
+    const eventId = req.params.eventId;
+    const {
+      privacy,
+      eventname,
+      category,
+      date,
+      time,
+      locationText,
+      location,
+      latitude,
+      longitude,
+      hostid,
+      description,
+      entrancefee,
+      features,
+      ticketprice,
+      gallery
+    } = req.body;
+  
+    const token = req.header('Authorization').replace('Bearer ', '');
+  
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const userId = decoded.userId;
+  
+      const updatedEvent = {
+        privacy,
+        eventname,
+        category,
+        date,
+        time,
+        locationText,
+        location,
+        latitude,
+        longitude,
+        hostid,
+        description,
+        entrancefee,
+        features,
+        ticketprice,
+        gallery
+      };
+  
+      const updatedEventResult = await Event.findByIdAndUpdate(eventId, updatedEvent, { new: true });
+  
+      if (!updatedEventResult) {
+        return res.status(404).json({
+          success: false,
+          message: "Event not found"
+        });
+      }
+  
+      res.status(200).json({
+        success: true,
+        message: "Event updated successfully",
+        data: updatedEventResult
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: "Event update failed",
+        error: error.message
+      });
+    }
+  });
+  
+  
 
 
-export { addMoment, getMoments, getEachMoment, getPost, likeUpdate, disLikeUpdate, getMyMoments, deleteEvent };
+export { addMoment, getMoments, getEachMoment, getPost, likeUpdate, disLikeUpdate, getMyMoments, deleteEvent,updateMoment};
