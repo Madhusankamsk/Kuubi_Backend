@@ -225,4 +225,26 @@ const getMyMoments = asyncHandler(async (req, res) => {
 });
 
 
-export { addMoment, getMoments, getEachMoment, getPost, likeUpdate, disLikeUpdate, getMyMoments };
+const deleteEvent = asyncHandler(async (req, res) => {
+    const { id } = req.params;  // Assuming the event ID is in the URL parameters
+
+    try {
+        // Find the event by ID and delete it
+        await Event.findByIdAndDelete(id);
+
+        res.status(200).json({
+            success: true,
+            message: "Event deleted successfully",
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Event deletion failed",
+            error: error.message
+        });
+    }
+});
+
+
+
+export { addMoment, getMoments, getEachMoment, getPost, likeUpdate, disLikeUpdate, getMyMoments, deleteEvent };

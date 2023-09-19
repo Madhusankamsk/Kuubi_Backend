@@ -1,5 +1,13 @@
 import express from "express";
-import { addMoment, getMoments,getEachMoment,getPost,likeUpdate,disLikeUpdate,getMyMoments} from "../controllers/eventController.js"; // Adjust the path
+import { addMoment,
+         getMoments,
+         getEachMoment,
+         getPost,
+         likeUpdate,
+         disLikeUpdate,
+         getMyMoments,
+         deleteEvent
+        } from "../controllers/eventController.js"; // Adjust the path
 
 const router = express.Router();
 
@@ -11,6 +19,7 @@ router.get("/getposts", getPost);
 router.post("/updatelike", likeUpdate);
 router.post("/updatedislike", disLikeUpdate);
 router.post("/getmymoments", getMyMoments);
+router.delete("/momentdelete", deleteEvent);
 
 
 export default router;
