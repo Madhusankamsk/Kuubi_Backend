@@ -205,5 +205,24 @@ const disLikeUpdate = asyncHandler(async (req, res) => {
     }
 })
 
+const getMyMoments = asyncHandler(async (req, res) => {
+    const { id } = req.body;
+    try {
+        //whole events list fetch
+        const events = await Event.find({ publisherId: id })
+        res.status(200).json({
+            success: true,
+            message: "Events fetched successfully",
+            data: events
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Events fetching failed",
+            error: error.message
+        });
+    }
+});
 
-export { addMoment, getMoments, getEachMoment, getPost, likeUpdate, disLikeUpdate };
+
+export { addMoment, getMoments, getEachMoment, getPost, likeUpdate, disLikeUpdate, getMyMoments };
