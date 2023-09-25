@@ -79,24 +79,18 @@ const getMoments = asyncHandler(async (req, res) => {
     const { id } = req.params;
     console.log(id);
     try {
-        if(id){
-            if(id===0){
-                const events = await Event.find({})
-                res.status(200).json({
-                    success: true,
-                    message: "Events fetched successfully",
-                    data: events
-                });
-            }else{
-                const events = await Event.find({category:id})
-                res.status(200).json({
-                    success: true,
-                    message: "Events fetched successfully",
-                    data: events
-                });
+        let events;
+
+        if (id) {
+            if (id == 0) {
+                events = await Event.find({});
+            } else {
+                events = await Event.find({ category: id });
             }
+        } else {
+            events = await Event.find({});
         }
-        const events = await Event.find({})
+
         res.status(200).json({
             success: true,
             message: "Events fetched successfully",
@@ -109,7 +103,8 @@ const getMoments = asyncHandler(async (req, res) => {
             error: error.message
         });
     }
-})
+});
+
 const getEachMoment = asyncHandler(async (req, res) => {
     // console.log("cgsffgffgf")
     const { id,userId } = req.body;
