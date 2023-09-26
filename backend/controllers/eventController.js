@@ -75,32 +75,82 @@ const addMoment = asyncHandler(async (req, res) => {
         });
     }
 });
+// const getMoments = asyncHandler(async (req, res) => {
+//     const { id } = req.params;
+//     const { latitude,longitude,longitudeDelta,latitudeDelta } = req.body;
+//     console.log(latitude,longitude,longitudeDelta,latitudeDelta);
+
+//     try {
+//         let events;
+
+//         if (id) {
+//             if (id == 0) {
+//                 events = await Event.find({});
+//             } else {
+//                 events = await Event.find({ category: id });
+//             }
+//         } else {
+//             events = await Event.find({});
+//         }
+
+//         res.status(200).json({
+//             success: true,
+//             message: "Events fetched successfully",
+//             data: events
+//         });
+//     } catch (error) {
+//         res.status(500).json({
+//             success: false,
+//             message: "Events fetching failed",
+//             error: error.message
+//         });
+//     }
+// });
+
 const getMoments = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    console.log(id);
+    const { latitude, longitude, longitudeDelta, latitudeDelta } = req.body;
+
     try {
         let events;
 
+        const minLatitude = latitude - latitudeDelta;
+        const maxLatitude = latitude + latitudeDelta;
+        const minLongitude = longitude - longitudeDelta;
+        const maxLongitude = longitude + longitudeDelta;
+
         if (id) {
-            if (id == 0) {
-                events = await Event.find({});
+            if (id === '0') {
+                events = await Event.find({
+                    latitude: { $gte: minLatitude, $lte: maxLatitude },
+                    longitude: { $gte: minLongitude, $lte: maxLongitude },
+                });
+                console.log(events);
             } else {
-                events = await Event.find({ category: id });
+                events = await Event.find({
+                    category: id,
+                    latitude: { $gte: minLatitude, $lte: maxLatitude },
+                    longitude: { $gte: minLongitude, $lte: maxLongitude },
+                });
             }
         } else {
-            events = await Event.find({});
+            events = await Event.find({
+                latitude: { $gte: minLatitude, $lte: maxLatitude },
+                longitude: { $gte: minLongitude, $lte: maxLongitude },
+            });
+            console.log(events);
         }
 
         res.status(200).json({
             success: true,
-            message: "Events fetched successfully",
-            data: events
+            message: 'Events fetched successfully',
+            data: events,
         });
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: "Events fetching failed",
-            error: error.message
+            message: 'Events fetching failed',
+            error: error.message,
         });
     }
 });

@@ -5,7 +5,7 @@ const router = express.Router();
 
 // Define routes here
 router.post("/add", addMoment);
-router.get("/get/:id", getMoments);
+router.post("/get/:id", getMoments);
 router.post("/getdata", getEachMoment);
 router.get("/getposts", getPost);
 router.post("/updatelike", likeUpdate);
