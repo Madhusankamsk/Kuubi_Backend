@@ -2,6 +2,7 @@ import asyncHandler from "express-async-handler";
 import Event from "../models/eventModel.js";
 import User from "../models/userModel.js";
 import jwt from 'jsonwebtoken';
+import Post from "../models/postFeedModel.js";
 
 const addMoment = asyncHandler(async (req, res) => {
 
@@ -306,5 +307,53 @@ const deleteEvent = asyncHandler(async (req, res) => {
     }
 });
 
+const createPost = asyncHandler(async (req, res) => {
+    const { eventId, postText, postImages, userId } = req.body;
+    try {
+        // Create a new post
+        const newPost = await Post.create({
+            publisherId: userId,
+            postText: postText,
+            postMedia: postImages,
+        });
 
-export { addMoment, getMoments, getEachMoment, getPost, likeUpdate, disLikeUpdate, getMyMoments, deleteEvent};
+        // Update the event's post array with the new post id
+        await Event.findByIdAndUpdate(eventId, {
+            $push: { post: newPost._id }, // Corrected 'posts' to 'post'
+        });
+
+        res.status(201).json({
+            success: true,
+            message: "Post added successfully",
+            data: newPost
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Post creation failed",
+            error: error.message
+        });
+    }
+});
+
+const getPostFeed = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    try {
+        const event = await Event.findById(id).populate('post');
+        console.log(event.post);
+        res.status(200).json({
+            success: true,
+            message: "Event fetched successfully",
+            data: event.post
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Event fetching failed",
+            error: error.message
+        });
+    } 
+});
+
+
+export { addMoment, getMoments, getEachMoment, getPost, likeUpdate, disLikeUpdate, getMyMoments, deleteEvent, createPost, getPostFeed};

@@ -6,7 +6,7 @@ const eventSchema = mongoose.Schema(
             type: String,
             required: true,
         },
-        privacy:{
+        privacy: {
             type: Boolean,
             required: true,
         },
@@ -26,9 +26,9 @@ const eventSchema = mongoose.Schema(
             type: String,
             required: true,
         },
-        locationText:{
+        locationText: {
             type: String,
-           // required: true,
+            // required: true,
         },
         location: {
             type: String,
@@ -42,7 +42,7 @@ const eventSchema = mongoose.Schema(
         longitude: {
             type: Number,
             default: 0,
-           // required: true,
+            // required: true,
         },
         hostid: {
             type: String,
@@ -84,11 +84,8 @@ const eventSchema = mongoose.Schema(
             type: Number,
             default: 0,
         },
-        post:{
-            type: [String],
-            default: []
-        },
-        interestedUsers:{
+        post: [{type: mongoose.Schema.Types.ObjectId,ref: 'Post'}],
+        interestedUsers: {
             type: [String],
             default: []
         },
