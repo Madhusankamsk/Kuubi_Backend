@@ -1,13 +1,10 @@
 import mongoose from "mongoose";
 
 const postSchema = mongoose.Schema({
-    publisherId: {
-        type: String,
-        required: true,
-    },
+    publisherId: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
     privacy: {
         type: Boolean,
-        required: true,
+        //required: true,
     },
     postText: {
         type: String,
