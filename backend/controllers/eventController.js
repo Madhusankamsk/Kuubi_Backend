@@ -3,6 +3,7 @@ import Event from "../models/eventModel.js";
 import User from "../models/userModel.js";
 import jwt from 'jsonwebtoken';
 import Post from "../models/postFeedModel.js";
+import Comment from "../models/commentModel.js";
 
 const addMoment = asyncHandler(async (req, res) => {
 
@@ -340,7 +341,7 @@ const getPostFeed = asyncHandler(async (req, res) => {
     const { id } = req.params;
     try {
         const event = await Event.findById(id).populate('post');
-        console.log(event.post);
+      //  console.log(event.post);
         res.status(200).json({
             success: true,
             message: "Event fetched successfully",
@@ -355,5 +356,56 @@ const getPostFeed = asyncHandler(async (req, res) => {
     } 
 });
 
+const getUserDetails = asyncHandler(async (req, res) => {
+    const { id } = req.params;
 
-export { addMoment, getMoments, getEachMoment, getPost, likeUpdate, disLikeUpdate, getMyMoments, deleteEvent, createPost, getPostFeed};
+//    console.log("fdsfgff66",id);
+    try {
+        const user = await User.findById(id);
+        res.status(200).json({
+            success: true,
+            message: "User fetched successfully",
+            data: user
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "User fetching failed",
+            error: error.message
+        });
+    }
+});
+
+
+const createComment = asyncHandler(async (req, res) => {
+    const { postId, commentText, userId } = req.body;
+    try {
+        // Create a new comment
+        const newComment = await Comment.create({
+            publisherId: userId,
+            commentText: commentText,
+            
+        });
+
+        // Update the post's comment array with the new comment id
+        await Post.findByIdAndUpdate(postId, {
+            $push: { comments: newComment._id },
+        });
+
+        res.status(201).json({
+            success: true,
+            message: "Comment added successfully",
+            data: newComment
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Comment creation failed",
+            error: error.message
+        });
+    }
+})
+
+
+
+export { addMoment, getMoments, getEachMoment, getPost, likeUpdate, disLikeUpdate, getMyMoments, deleteEvent, createPost, getPostFeed,getUserDetails,createComment};
