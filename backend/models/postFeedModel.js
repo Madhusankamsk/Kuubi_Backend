@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 const postSchema = mongoose.Schema({
     publisherId: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
+    eventId: {type: mongoose.Schema.Types.ObjectId, ref: 'Event'},
     privacy: {
         type: Boolean,
         //required: true,
@@ -11,6 +12,14 @@ const postSchema = mongoose.Schema({
         required: true,
     },
     postMedia: {
+        type: [String],
+        default: [],
+    },
+    isEvent: {
+        type: Boolean,
+        default: false,
+    },
+    likes: {
         type: [String],
         default: [],
     },

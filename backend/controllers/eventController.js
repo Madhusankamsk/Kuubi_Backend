@@ -53,9 +53,20 @@ const addMoment = asyncHandler(async (req, res) => {
             gallery
         });
 
-        console.log(newEvent);
+        // const newPost = await Post.create({
+        //     publisherId: decoded.userId,
+        //     eventId: newEvent._id,
+        //     privacy,
+        //     postText: description,
+        //     postMedia: gallery,
+        //     isEvent: true
+        // })
+
+        // console.log(newPost);
 
         // Update the user's addedMoments array
+
+
         const user = await User.findById(decoded.userId);
         if (user) {
             user.addedMoments.push(newEvent._id); // Assuming newEvent._id is the ObjectId of the newly created event
@@ -63,6 +74,8 @@ const addMoment = asyncHandler(async (req, res) => {
         } else {
             console.log("User not found");
         }
+
+
 
         res.status(201).json({
             success: true,
@@ -376,36 +389,58 @@ const getUserDetails = asyncHandler(async (req, res) => {
     }
 });
 
-
-const createComment = asyncHandler(async (req, res) => {
-    const { postId, commentText, userId } = req.body;
+//i want to combined event and post and sort by time and return description and images
+const getWholePosts = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+   // console.log(id);
     try {
-        // Create a new comment
-        const newComment = await Comment.create({
-            publisherId: userId,
-            commentText: commentText,
-            
-        });
-
-        // Update the post's comment array with the new comment id
-        await Post.findByIdAndUpdate(postId, {
-            $push: { comments: newComment._id },
-        });
-
-        res.status(201).json({
+        const post = await Post.find({publisherId:id}).sort({ createdAt: -1 });
+        res.status(200).json({
             success: true,
-            message: "Comment added successfully",
-            data: newComment
-        });
+            message: "Event fetched successfully",
+            data: post
+        })
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: "Comment creation failed",
+            message: "Event fetching failed",
             error: error.message
-        });
+        })
     }
-})
+  });
+  
+
+
+// const createComment = asyncHandler(async (req, res) => {
+//     const { postId, commentText, userId } = req.body;
+//     try {
+//         // Create a new comment
+//         const newComment = await Comment.create({
+//             publisherId: userId,
+//             commentText: commentText,
+            
+//         });
+
+//         // Update the post's comment array with the new comment id
+//         await Post.findByIdAndUpdate(postId, {
+//             $push: { comments: newComment._id },
+//         });
+
+//         res.status(201).json({
+//             success: true,
+//             message: "Comment added successfully",
+//             data: newComment
+//         });
+//     } catch (error) {
+//         res.status(500).json({
+//             success: false,
+//             message: "Comment creation failed",
+//             error: error.message
+//         });
+//     }
+// })
 
 
 
-export { addMoment, getMoments, getEachMoment, getPost, likeUpdate, disLikeUpdate, getMyMoments, deleteEvent, createPost, getPostFeed,getUserDetails,createComment};
+
+export { addMoment, getMoments, getEachMoment, getPost, likeUpdate, disLikeUpdate, getMyMoments, deleteEvent, createPost, getPostFeed,getUserDetails,getWholePosts};
