@@ -31,6 +31,7 @@ const addMoment = asyncHandler(async (req, res) => {
     // console.log(token);
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const newGallery = gallery.map(item => ({ photoUrl: item })); // Create gallery objects
         // console.log(decoded);
         console.log(decoded.userId);
         // Create a new event using the Event model
@@ -50,23 +51,8 @@ const addMoment = asyncHandler(async (req, res) => {
             entrancefee,
             features,
             ticketprice,
-            gallery
+            gallery: newGallery
         });
-
-        // const newPost = await Post.create({
-        //     publisherId: decoded.userId,
-        //     eventId: newEvent._id,
-        //     privacy,
-        //     postText: description,
-        //     postMedia: gallery,
-        //     isEvent: true
-        // })
-
-        // console.log(newPost);
-
-        // Update the user's addedMoments array
-
-
         const user = await User.findById(decoded.userId);
         if (user) {
             user.addedMoments.push(newEvent._id); // Assuming newEvent._id is the ObjectId of the newly created event
@@ -176,6 +162,7 @@ const getEachMoment = asyncHandler(async (req, res) => {
     try {
         //whole events list fetch
         const event = await Event.findById(id)
+        console.log(event);
         const user = await User.findById(userId);
         res.status(200).json({
             success: true,
@@ -353,7 +340,7 @@ const createPost = asyncHandler(async (req, res) => {
 const getPostFeed = asyncHandler(async (req, res) => {
     const { id } = req.params;
     try {
-        const event = await Event.findById(id).populate('post');
+        const event = await Event.findById(id).populate('post').sort({ createdAt: -1 });
       //  console.log(event.post);
         res.status(200).json({
             success: true,
@@ -389,7 +376,6 @@ const getUserDetails = asyncHandler(async (req, res) => {
     }
 });
 
-//i want to combined event and post and sort by time and return description and images
 const getWholePosts = asyncHandler(async (req, res) => {
     const { id } = req.params;
    // console.log(id);
@@ -408,39 +394,191 @@ const getWholePosts = asyncHandler(async (req, res) => {
         })
     }
   });
-  
+
+//Interested and going process controller create as like dislike process
+const interestedUpdate = asyncHandler(async (req, res) => {
+    
+        const { id, userId } = req.body;
+        try {
+            const event = await Event.findById(id);
+            const user = await User.findById(userId);
+            if (event && user) {
+                if (event.interested.includes(userId) && user.interestedEvents.includes(id)) {
+                    event.interested.pull(userId);
+                    user.interestedEvents.pull(id);
+                } else {
+                    event.interested.push(userId);
+                    user.interestedEvents.push(id);
+                }
+    
+                await event.save();
+                await user.save();
+
+                console.log(event.interested.includes(userId));
+    
+                res.status(200).json({
+                    success: true,
+                    message: "Event interested updated successfully",
+                    data: { event, interest: event.interested.includes(userId) }
+                });
+            } else {
+                res.status(404).json({
+                    success: false,
+                    message: "Event not found",
+                    error: "Event not found with the provided ID"
+                });
+            }
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                message: "Event interested update failed",
+                error: error.message
+            });
+        }
+});
+
+const goingUpdate = asyncHandler(async (req, res) => {
+        
+            const { id, userId } = req.body;
+            try {
+                const event = await Event.findById(id);
+                const user = await User.findById(userId);
+                if (event && user) {
+                    if (event.going.includes(userId) && user.goingEvents.includes(id)) {
+                        event.going.pull(userId);
+                        user.goingEvents.pull(id);
+                    } else {
+                        event.going.push(userId);
+                        user.goingEvents.push(id);
+                    }
+        
+                    await event.save();
+                    await user.save();
+
+                    //console.log(event.going.includes(userId));
+        
+                    res.status(200).json({
+                        success: true,
+                        message: "Event going updated successfully",
+                        data: { event, go: event.going.includes(userId) }
+                    });
+                } else {
+                    res.status(404).json({
+                        success: false,
+                        message: "Event not found",
+                        error: "Event not found with the provided ID"
+                    });
+                }
+            } catch (error) {
+                res.status(500).json({
+                    success: false,
+                    message: "Event going update failed",
+                    error: error.message
+                });
+            }
+});
+
+const contribute = asyncHandler(async (req, res) => {
+    //const {userId} = req.params;
+    const {userId} = req.body;
+    console.log("userId",userId);
+    try {
+        const user = await User.findById(userId);
+        if(user){
+            //get each event id from user going array and return the event details time sorted
+            const events = await Event.find({_id:{$in:user.goingEvents}}).sort({createdAt:-1});
+         //   console.log(events);
+            res.status(200).json({
+                success: true,
+                message: "Event fetched successfully",
+                data: events
+            });
+        }
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Event fetching failed",
+            error: error.message
+        });
+    }
+});
+
+const selectLeaderBoard = asyncHandler(async (req, res) => {
+    try {
+        // get all events and post of each users and multiply by 10 and 5 respectively and save the total to the marks in user model and sort by descending order and get top 10 users
+        const users = await User.find({}).sort({createdAt:-1});
+        let leaderBoard = [];
+        for(let i=0;i<users.length;i++){
+            let user = users[i];
+            let total = user.addedMoments.length*10 + user.goingEvents.length*5;
+            leaderBoard.push({userId:user._id,total:total,firstName:user.firstName,lastName:user.lastName});
+        }
+        leaderBoard.sort((a,b)=>b.total-a.total);
+        leaderBoard = leaderBoard.slice(0,10);
+        console.log(leaderBoard);
+        res.status(200).json({
+            success: true,
+            message: "LeaderBoard fetched successfully",
+            data: leaderBoard
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "LeaderBoard fetching failed",
+            error: error.message
+        });
+    }
+});
 
 
-// const createComment = asyncHandler(async (req, res) => {
-//     const { postId, commentText, userId } = req.body;
-//     try {
-//         // Create a new comment
-//         const newComment = await Comment.create({
-//             publisherId: userId,
-//             commentText: commentText,
-            
-//         });
+//react to use to find event eventId and photos find by image id and update the reacted users array with user id
+const reactToPhoto = asyncHandler(async (req, res) => {
+    const { eventId, imageId, userId } = req.body;
+    console.log(eventId, imageId, userId);
+    try {
+        const event = await Event.findById(eventId);
+        if (event) {
+            const photo = event.gallery.id(imageId);
+            if (photo) {
+                if (photo.reactedUsers.includes(userId)) {
+                    // User already reacted to the photo, so remove the reaction
+                    photo.reactedUsers.pull(userId);
+                } else {
+                    // User is reacting to the photo
+                    photo.reactedUsers.push(userId);
+                }
 
-//         // Update the post's comment array with the new comment id
-//         await Post.findByIdAndUpdate(postId, {
-//             $push: { comments: newComment._id },
-//         });
+                // Save the updated event
+                await event.save();
+                //console.log(photo.reactedUsers.includes(userId) ? photo.reactedUsers.length : "not reacted")
+                res.status(200).json({
+                    success: true,
+                    message: "Photo reaction updated successfully",
+                    data: { event }
+                });
+            } else {
+                res.status(404).json({
+                    success: false,
+                    message: "Photo not found",
+                    error: "Photo not found with the provided ID"
+                });
+            }
+        } else {
+            res.status(404).json({
+                success: false,
+                message: "Event not found",
+                error: "Event not found with the provided ID"
+            });
+        }
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Photo reaction update failed",
+            error: error.message
+        });
+    }
+});
 
-//         res.status(201).json({
-//             success: true,
-//             message: "Comment added successfully",
-//             data: newComment
-//         });
-//     } catch (error) {
-//         res.status(500).json({
-//             success: false,
-//             message: "Comment creation failed",
-//             error: error.message
-//         });
-//     }
-// })
 
-
-
-
-export { addMoment, getMoments, getEachMoment, getPost, likeUpdate, disLikeUpdate, getMyMoments, deleteEvent, createPost, getPostFeed,getUserDetails,getWholePosts};
+export { addMoment, getMoments, getEachMoment, getPost, likeUpdate, disLikeUpdate, getMyMoments, deleteEvent, createPost, getPostFeed,getUserDetails,getWholePosts,interestedUpdate,goingUpdate,contribute,selectLeaderBoard,reactToPhoto};

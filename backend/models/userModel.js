@@ -27,7 +27,19 @@ const userSchema = mongoose.Schema(
     addedMoments:{
       type: [String],
       default: [],
-    }
+    },
+    interestedEvents:{
+      type: [String],
+      default: [],
+    },
+    goingEvents:{
+      type: [String],
+      default: [],
+    },
+    marks:{
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,

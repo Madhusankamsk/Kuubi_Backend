@@ -72,25 +72,25 @@ const eventSchema = mongoose.Schema(
             type: [Number],
             default: [],
         },
-        gallery: {
+        gallery: [{
+            photoUrl: {
+                type: String,
+                required: true,
+            },
+            reactedUsers: {
+                type: [String],
+                default: [],
+            }
+        }],
+        interested: {
             type: [String],
             default: [],
         },
-        goingCount: {
-            type: Number,
-            default: 0,
-        },
-        interestedCount: {
-            type: Number,
-            default: 0,
-        },
-        post: [{type: mongoose.Schema.Types.ObjectId,ref: 'Post'}],
-        interestedUsers: {
+        going: {
             type: [String],
-            default: []
+            default: [],
         },
-
-
+        post: [{type: mongoose.Schema.Types.ObjectId,ref: 'Post'}]
     },
     {
         timestamps: true, // Adds createdAt and updatedAt fields
