@@ -581,4 +581,51 @@ const reactToPhoto = asyncHandler(async (req, res) => {
 });
 
 
-export { addMoment, getMoments, getEachMoment, getPost, likeUpdate, disLikeUpdate, getMyMoments, deleteEvent, createPost, getPostFeed,getUserDetails,getWholePosts,interestedUpdate,goingUpdate,contribute,selectLeaderBoard,reactToPhoto};
+const updateEvents = asyncHandler(async (req, res) => {
+    const { id, userId, eventData } = req.body;
+  
+    try {
+      // First, check if the user (userId) has permission to update the event with the given id
+      const event = await Event.findById(id);
+  
+      if (!event) {
+        return res.status(404).json({
+          success: false,
+          message: 'Event not found',
+        });
+      }
+  
+      if (event.publisherId !== userId) {
+        return res.status(403).json({
+          success: false,
+          message: 'Permission denied. You are not the publisher of this event.',
+        });
+      }
+  
+      // Now, update the event data
+      const updatedEvent = await Event.findByIdAndUpdate(id, eventData, { new: true });
+  
+      if (!updatedEvent) {
+        return res.status(500).json({
+          success: false,
+          message: 'Event update failed',
+        });
+      }
+      console.log("Done")
+      res.status(200).json({
+        success: true,
+        message: 'Event updated successfully',
+        data: updatedEvent,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: 'Event update failed',
+        error: error.message,
+      });
+    }
+  });
+  
+
+
+export { addMoment, getMoments, getEachMoment, getPost, likeUpdate, disLikeUpdate, getMyMoments, deleteEvent, createPost, getPostFeed,getUserDetails,getWholePosts,interestedUpdate,goingUpdate,contribute,selectLeaderBoard,reactToPhoto,updateEvents};
