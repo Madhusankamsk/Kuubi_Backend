@@ -1,5 +1,5 @@
 import express from "express";
-import { addMoment, getMoments,getEachMoment,getPost,likeUpdate,disLikeUpdate,getMyMoments,deleteEvent,createPost,getPostFeed,getUserDetails,getWholePosts,interestedUpdate,goingUpdate,contribute,selectLeaderBoard,reactToPhoto,updateEvents} from "../controllers/eventController.js"; // Adjust the path
+import { addMoment, getMoments,getEachMoment,getPost,likeUpdate,disLikeUpdate,getMyMoments,deleteEvent,createPost,getPostFeed,getUserDetails,getWholePosts,interestedUpdate,goingUpdate,contribute,selectLeaderBoard,reactToPhoto,updateEvents,searchEvents,sendNotification} from "../controllers/eventController.js"; // Adjust the path
 
 const router = express.Router();
 
@@ -23,6 +23,7 @@ router.post("/contributes", contribute);
 router.get("/leaderboard", selectLeaderBoard);
 router.post("/react", reactToPhoto);
 router.put("/updateevents", updateEvents);
-
+router.get("/search/:id", searchEvents)
+router.post("/sendnotification", sendNotification);
 
 export default router;
