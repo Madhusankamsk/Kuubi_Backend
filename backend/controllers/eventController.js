@@ -4,6 +4,9 @@ import User from "../models/userModel.js";
 import jwt from 'jsonwebtoken';
 import Post from "../models/postFeedModel.js";
 import Comment from "../models/commentModel.js";
+import {Expo} from "expo-server-sdk";
+
+
 
 const addMoment = asyncHandler(async (req, res) => {
 
@@ -110,7 +113,7 @@ const addMoment = asyncHandler(async (req, res) => {
 
 const getMoments = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const { latitude, longitude, longitudeDelta, latitudeDelta } = req.body;
+    const { latitude, longitude, longitudeDelta, latitudeDelta,selectedDate } = req.body;
 
     try {
         let events;
@@ -123,6 +126,8 @@ const getMoments = asyncHandler(async (req, res) => {
         if (id) {
             if (id === '0') {
                 events = await Event.find({
+                    //when selected date is not null
+                    date: selectedDate ? selectedDate : { $gte: new Date().toISOString().slice(0, 10) },
                     latitude: { $gte: minLatitude, $lte: maxLatitude },
                     longitude: { $gte: minLongitude, $lte: maxLongitude },
                 });
@@ -130,12 +135,16 @@ const getMoments = asyncHandler(async (req, res) => {
             } else {
                 events = await Event.find({
                     category: id,
+                    //when selected date is not null
+                    date: selectedDate ? selectedDate : { $gte: new Date().toISOString().slice(0, 10) },
                     latitude: { $gte: minLatitude, $lte: maxLatitude },
                     longitude: { $gte: minLongitude, $lte: maxLongitude },
                 });
             }
         } else {
             events = await Event.find({
+                //when selected date is not null
+                date: selectedDate ? selectedDate : { $gte: new Date().toISOString().slice(0, 10) },
                 latitude: { $gte: minLatitude, $lte: maxLatitude },
                 longitude: { $gte: minLongitude, $lte: maxLongitude },
             });
@@ -625,7 +634,142 @@ const updateEvents = asyncHandler(async (req, res) => {
       });
     }
   });
+
+const searchEvents = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    console.log(id);
+    try {
+        const events = await Event.find({eventname:{$regex:id,$options:'i'}})
+        res.status(200).json({
+            success: true,
+            message: "Event fetched successfully",
+            data: events
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Event fetching failed",
+            error: error.message
+        });
+    }
+})
+
+
+// const sendNotification = asyncHandler(async (req, res) => {
+//     const { message } = req.body;
+//     console.log(message);
+  
+//     try {
+//       const users = await User.find({});
+//       const somePushTokens = [];
+  
+//       for (let user of users) {
+//         if (user.notificationtoken) {
+//           somePushTokens.push(user.notificationtoken);
+//         }
+//       }
+  
+//       let expo = new Expo({ accessToken: process.env.EXPO_ACCESS_TOKEN });
+//       const messages = [];
+  
+//       for (let pushToken of somePushTokens) {
+//         messages.push({
+//           to: pushToken,
+//           sound: 'default',
+//           title: 'Original Title',
+//           body: message.body,
+//           data: { withSome: 'data' },
+//         });
+//       }
+  
+//         await expo.sendPushNotificationsAsync([message]);
+//       res.status(200).json({ success: true, message: 'Notification sent successfully' });
+//     } catch (error) {
+//       res.status(500).json({
+//         success: false,
+//         message: "Notification sending failed",
+//         error: error.message
+//       });
+//     }
+//   });
+  
+const sendNotification = asyncHandler(async (req, res) => {
+    const { message } = req.body;
+    console.log(message);
+  
+    try {
+      const users = await User.find({});
+      const somePushTokens = [];
+  
+      for (let user of users) {
+        if (user.notificationtoken) {
+          somePushTokens.push(user.notificationtoken);
+        }
+      }
+  
+      let expo = new Expo({ accessToken: process.env.EXPO_ACCESS_TOKEN });
+      const messages = [];
+  
+      for (let pushToken of somePushTokens) {
+        messages.push({
+          to: pushToken,
+          sound: 'default',
+          title: 'Original Title',
+          body: message.body,
+          data: { withSome: 'data' },
+        });
+      }
+
+        const chunks = expo.chunkPushNotifications(messages);
+        const tickets = [];
+        (async () => {
+            for (let chunk of chunks) {
+                try {
+                    const ticketChunk = await expo.sendPushNotificationsAsync(chunk);
+                    console.log(ticketChunk);
+                    tickets.push(...ticketChunk);
+                } catch (error) {
+                    console.error(error);
+                }
+            }
+        })();
+        const receiptIds = [];
+        for (let ticket of tickets) {
+            if (ticket.id) {
+                receiptIds.push(ticket.id);
+            }
+        }
+        const receiptIdChunks = expo.chunkPushNotificationReceiptIds(receiptIds);
+        (async () => {
+            for (let chunk of receiptIdChunks) {
+                try {
+                    const receipts = await expo.getPushNotificationReceiptsAsync(chunk);
+                    console.log(receipts);
+                    for (let receipt of receipts) {
+                        if (receipt.status === 'ok') {
+                            continue;
+                        } else if (receipt.status === 'error') {
+                            console.error(`There was an error sending a notification: ${receipt.message}`);
+                            if (receipt.details && receipt.details.error) {
+                                console.error(`The error code is ${receipt.details.error}`);
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error(error);
+                }
+            }
+        })();
+        res.status(200).json({ success: true, message: 'Notification sent successfully' });
+
+      } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: "Notification sending failed",
+        error: error.message
+      });
+    }
+  });
   
 
-
-export { addMoment, getMoments, getEachMoment, getPost, likeUpdate, disLikeUpdate, getMyMoments, deleteEvent, createPost, getPostFeed,getUserDetails,getWholePosts,interestedUpdate,goingUpdate,contribute,selectLeaderBoard,reactToPhoto,updateEvents};
+export { addMoment, getMoments, getEachMoment, getPost, likeUpdate, disLikeUpdate, getMyMoments, deleteEvent, createPost, getPostFeed,getUserDetails,getWholePosts,interestedUpdate,goingUpdate,contribute,selectLeaderBoard,reactToPhoto,updateEvents,searchEvents,sendNotification};

@@ -19,5 +19,6 @@ const feedCollectionSchema = mongoose.Schema({
 }
 )
 
+
 const FeedCollection = mongoose.model('FeedCollection', feedCollectionSchema);
 export default FeedCollection;

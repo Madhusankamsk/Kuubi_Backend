@@ -24,6 +24,10 @@ const userSchema = mongoose.Schema(
       type: Date,
       required: true,
     },
+    notificationtoken: {
+      type: String,
+      default: "",
+    },
     addedMoments:{
       type: [String],
       default: [],

@@ -90,11 +90,15 @@ const getUserProfile = asyncHandler(async (req, res) => {
 // @route   PUT /api/users/profile
 // @access  Private
 const updateUserProfile = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id);
-
+  //console.log("updateUserProfile");
+  //onsole.log(req.body);
+  
+  const user = await User.findById(req.body._id);
+ // console.log(user)
   if (user) {
     user.name = req.body.name || user.name;
     user.email = req.body.email || user.email;
+    user.notificationtoken = req.body.notificationtoken || user.notificationtoken;
 
     if (req.body.password) {
       user.password = req.body.password;
@@ -106,12 +110,14 @@ const updateUserProfile = asyncHandler(async (req, res) => {
       _id: updatedUser._id,
       name: updatedUser.name,
       email: updatedUser.email,
+      notificationtoken: updatedUser.notificationtoken,
     });
   } else {
     res.status(404);
     throw new Error('User not found');
   }
 });
+
 
 
 export {
