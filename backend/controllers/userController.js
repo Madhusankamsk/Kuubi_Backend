@@ -27,7 +27,8 @@ const authUser = asyncHandler(async (req, res) => {
 // @route   POST /api/users
 // @access  Public
 const registerUser = asyncHandler(async (req, res) => {
-  const { firstName,lastName,email,password,birthday } = req.body;
+  const { firstName,lastName,email,password,birthday,profilePicture } = req.body;
+  console.log(profilePicture)
  // console.log(req.body);
   const userExists = await User.findOne({ email });
 
@@ -41,7 +42,8 @@ const registerUser = asyncHandler(async (req, res) => {
     lastName,
     email,
     password,
-    birthday
+    birthday,
+    profilePicture
   });
 
   if (user) {
@@ -72,13 +74,16 @@ const logoutUser = (req, res) => {
 // @route   GET /api/users/profile
 // @access  Private
 const getUserProfile = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id);
-
+  //console.log("getUserProfile",req.params.id)
+  const user = await User.findById(req.params.id);
+ // console.log(user)
   if (user) {
     res.json({
       _id: user._id,
-      name: user.name,
+      name: user.firstName + " " + user.lastName,
       email: user.email,
+      profilePicture: user.profilePicture,
+
     });
   } else {
     res.status(404);
