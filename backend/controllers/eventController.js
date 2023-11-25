@@ -318,13 +318,15 @@ const deleteEvent = asyncHandler(async (req, res) => {
 });
 
 const createPost = asyncHandler(async (req, res) => {
-    const { eventId, postText, postImages, userId } = req.body;
+    const { eventId, postText, postImages, userId,eventname } = req.body;
     try {
         // Create a new post
         const newPost = await Post.create({
             publisherId: userId,
             postText: postText,
             postMedia: postImages,
+            eventId: eventId,
+            eventname:eventname
         });
 
         // Update the event's post array with the new post id

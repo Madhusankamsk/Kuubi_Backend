@@ -7,6 +7,10 @@ const postSchema = mongoose.Schema({
         type: Boolean,
         //required: true,
     },
+    eventname: {
+        type: String,
+        //required: true,
+    },
     postText: {
         type: String,
         required: true,
