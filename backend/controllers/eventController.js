@@ -173,10 +173,18 @@ const getEachMoment = asyncHandler(async (req, res) => {
         const event = await Event.findById(id)
         console.log(event);
         const user = await User.findById(userId);
+       // console.log("Interested",event.interested.includes(userId));
+      //  console.log("Intere",event.going.includes(userId));
         res.status(200).json({
             success: true,
             message: "Event fetched successfully",
-            data: { event, like: event.like.includes(userId), dislike: event.dislike.includes(userId),user:user}
+            data: { event,
+                    like: event.like.includes(userId), 
+                    dislike: event.dislike.includes(userId),
+                    user:user,
+                    go:event.going.includes(userId),
+                    interested:event.interested.includes(userId)
+                }
         });
     } catch (error) {
         res.status(500).json({
@@ -516,14 +524,26 @@ const contribute = asyncHandler(async (req, res) => {
 });
 
 const selectLeaderBoard = asyncHandler(async (req, res) => {
+    const {id} = req.params;
+    console.log(id);
     try {
         // get all events and post of each users and multiply by 10 and 5 respectively and save the total to the marks in user model and sort by descending order and get top 10 users
         const users = await User.find({}).sort({createdAt:-1});
+        let myMarks = 0;
+        let fName = '';
         let leaderBoard = [];
         for(let i=0;i<users.length;i++){
             let user = users[i];
-            let total = user.addedMoments.length*10 + user.goingEvents.length*5;
-            leaderBoard.push({userId:user._id,total:total,firstName:user.firstName,lastName:user.lastName});
+
+            const events = await Event.find({publisherId:user._id});
+            const posts = await Post.find({publisherId:user._id});
+            let total = events.length*10 + posts.length*5;
+            if(user._id == id){
+                myMarks = total;
+                fName = user.firstName + " " + user.lastName ;
+            }
+           // leaderBoard.push({user:user,total:total});
+            leaderBoard.push({userId:user._id,total:total,firstName:user.firstName,lastName:user.lastName,profilePicture:user.profilePicture});
         }
         leaderBoard.sort((a,b)=>b.total-a.total);
         leaderBoard = leaderBoard.slice(0,10);
@@ -531,7 +551,7 @@ const selectLeaderBoard = asyncHandler(async (req, res) => {
         res.status(200).json({
             success: true,
             message: "LeaderBoard fetched successfully",
-            data: leaderBoard
+            data: {leaderBoard:leaderBoard,myMarks:myMarks,myName:fName}
         });
     } catch (error) {
         res.status(500).json({
@@ -716,7 +736,7 @@ const sendNotification = asyncHandler(async (req, res) => {
         messages.push({
           to: pushToken,
           sound: 'default',
-          title: 'Original Title',
+          title: 'New Event Suggestion for you !',
           body: message.body,
           data: { withSome: 'data' },
         });

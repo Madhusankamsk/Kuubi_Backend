@@ -20,7 +20,7 @@ router.get("/getposts/:id", getWholePosts);
 router.post("/interested", interestedUpdate);
 router.post("/going", goingUpdate);
 router.post("/contributes", contribute);
-router.get("/leaderboard", selectLeaderBoard);
+router.get("/leaderboard/:id", selectLeaderBoard);
 router.post("/react", reactToPhoto);
 router.put("/updateevents", updateEvents);
 router.get("/search/:id", searchEvents)
