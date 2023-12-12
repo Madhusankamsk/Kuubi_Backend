@@ -22,6 +22,8 @@ const addMoment = asyncHandler(async (req, res) => {
         longitude,
         hostid,
         description,
+        contactDetails,
+        ticketBookingLink,
         entrancefee,
         features,
         ticketprice,
@@ -51,6 +53,8 @@ const addMoment = asyncHandler(async (req, res) => {
             longitude,
             hostid,
             description,
+            contactDetails,
+            ticketBookingLink,
             entrancefee,
             features,
             ticketprice,
@@ -140,6 +144,7 @@ const getMoments = asyncHandler(async (req, res) => {
                     latitude: { $gte: minLatitude, $lte: maxLatitude },
                     longitude: { $gte: minLongitude, $lte: maxLongitude },
                 });
+                console.log(events);
             }
         } else {
             events = await Event.find({
@@ -150,7 +155,6 @@ const getMoments = asyncHandler(async (req, res) => {
             });
             console.log(events);
         }
-
         res.status(200).json({
             success: true,
             message: 'Events fetched successfully',
@@ -791,7 +795,7 @@ const sendNotification = asyncHandler(async (req, res) => {
         error: error.message
       });
     }
-  });
+});
   
 
 export { addMoment, getMoments, getEachMoment, getPost, likeUpdate, disLikeUpdate, getMyMoments, deleteEvent, createPost, getPostFeed,getUserDetails,getWholePosts,interestedUpdate,goingUpdate,contribute,selectLeaderBoard,reactToPhoto,updateEvents,searchEvents,sendNotification};

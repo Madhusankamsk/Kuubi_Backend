@@ -56,6 +56,10 @@ const eventSchema = mongoose.Schema(
             type: String,
             required: true,
         },
+        contactDetails: {
+            type: String,
+            required: true,
+        },
         like: {
             type: [String],
             default: [],
@@ -67,6 +71,10 @@ const eventSchema = mongoose.Schema(
         entrancefee: {
             type: Boolean,
             required: true,
+        },
+        ticketBookingLink: {
+            type: String,
+            default: '',
         },
         ticketprice: {
             type: [Number],
