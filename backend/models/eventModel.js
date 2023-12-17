@@ -6,6 +6,10 @@ const eventSchema = mongoose.Schema(
             type: String,
             required: true,
         },
+        publisherName: {
+            type: String,
+            required: true,
+        },
         privacy: {
             type: Boolean,
             required: true,

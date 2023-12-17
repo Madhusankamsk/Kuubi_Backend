@@ -30,19 +30,21 @@ const addMoment = asyncHandler(async (req, res) => {
         gallery
     } = req.body;
 
-    // console.log(req.body);
+     console.log(req.body);
 
     const token = req.header('Authorization').replace('Bearer ', '');
     // console.log(token);
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const newGallery = gallery.map(item => ({ photoUrl: item })); // Create gallery objects
+        const userdetails = await User.findById(decoded.userId);
         // console.log(decoded);
         console.log(decoded.userId);
         // Create a new event using the Event model
         const newEvent = await Event.create({
             privacy,
             publisherId: decoded.userId,
+            publisherName: userdetails.firstName + " " + userdetails.lastName,
             eventname,
             category,
             date,
@@ -60,6 +62,7 @@ const addMoment = asyncHandler(async (req, res) => {
             ticketprice,
             gallery: newGallery
         });
+       // console.log(newEvent);
         const user = await User.findById(decoded.userId);
         if (user) {
             user.addedMoments.push(newEvent._id); // Assuming newEvent._id is the ObjectId of the newly created event
