@@ -80,8 +80,11 @@ const getUserProfile = asyncHandler(async (req, res) => {
   if (user) {
     res.json({
       _id: user._id,
-      name: user.firstName + " " + user.lastName,
+      firstname: user.firstName,
+      lastname:user.lastName,
       email: user.email,
+      birthday: user.birthday,
+      bio : user.bio,
       profilePicture: user.profilePicture,
 
     });
@@ -95,32 +98,12 @@ const getUserProfile = asyncHandler(async (req, res) => {
 // @route   PUT /api/users/profile
 // @access  Private
 const updateUserProfile = asyncHandler(async (req, res) => {
-  //console.log("updateUserProfile");
-  //onsole.log(req.body);
-  
-  const user = await User.findById(req.body._id);
- // console.log(user)
-  if (user) {
-    user.name = req.body.name || user.name;
-    user.email = req.body.email || user.email;
-    user.notificationtoken = req.body.notificationtoken || user.notificationtoken;
+  const {id,firstname,lastname,birthday,profilePicture } = req.body;
+  console.log(req.body);
+  // const user = await User.findById(id);
+  // if(user){
 
-    if (req.body.password) {
-      user.password = req.body.password;
-    }
-
-    const updatedUser = await user.save();
-
-    res.json({
-      _id: updatedUser._id,
-      name: updatedUser.name,
-      email: updatedUser.email,
-      notificationtoken: updatedUser.notificationtoken,
-    });
-  } else {
-    res.status(404);
-    throw new Error('User not found');
-  }
+  // }
 });
 
 

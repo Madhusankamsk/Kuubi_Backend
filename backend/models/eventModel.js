@@ -14,6 +14,10 @@ const eventSchema = mongoose.Schema(
             type: Boolean,
             required: true,
         },
+        invitationLink: {
+            type: String,
+            default: '',
+        },
         eventname: {
             type: String,
             required: true,
