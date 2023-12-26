@@ -98,12 +98,52 @@ const getUserProfile = asyncHandler(async (req, res) => {
 // @route   PUT /api/users/profile
 // @access  Private
 const updateUserProfile = asyncHandler(async (req, res) => {
-  const {id,firstname,lastname,birthday,profilePicture } = req.body;
-  console.log(req.body);
-  // const user = await User.findById(id);
-  // if(user){
+  const {id,firstName,bio,lastName,birthday,profilePicture } = req.body;
+  console.log(req.body)
+  try {
+   const user = await User.findByIdAndUpdate(id, {
+      firstName: firstName,
+      lastName: lastName,
+      birthday: birthday,
+      bio: bio,
+      profilePicture: profilePicture,
+   }, { new: true });
+    console.log(user)
+    res.status(200).json({
+      _id: user._id,
+      firstname: user.firstName,
+      lastname:user.lastName,
+      email: user.email,
+      birthday: user.birthday,
+      bio : user.bio,
+      profilePicture: user.profilePicture,
+    });
+  } catch (error) {
+    res.status(404);
+    throw new Error('User not found');
+  }
+});
 
-  // }
+
+const updateUserProfileNotification = asyncHandler(async (req, res) => {
+  //console.log("updateUserProfile");
+  //onsole.log(req.body);
+  
+  const user = await User.findById(req.body._id);
+ // console.log(user)
+  if (user) {
+    user.notificationtoken = req.body.notificationtoken || user.notificationtoken;
+
+    const updatedUser = await user.save();
+
+    res.json({
+      _id: updatedUser._id,
+      notificationtoken: updatedUser.notificationtoken,
+    });
+  } else {
+    res.status(404);
+    throw new Error('User not found');
+  }
 });
 
 
@@ -114,4 +154,5 @@ export {
   logoutUser,
   getUserProfile,
   updateUserProfile,
+  updateUserProfileNotification
 };
