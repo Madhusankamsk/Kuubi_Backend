@@ -50,6 +50,14 @@ const userSchema = mongoose.Schema(
       type: [String],
       default: [],
     },
+    currentLatitude:{
+      type: Number,
+      default: 0,
+    },
+    currentLongitude:{
+      type: Number,
+      default: 0,
+    },
     marks:{
       type: Number,
       default: 0,

@@ -314,6 +314,8 @@ const getMyMoments = asyncHandler(async (req, res) => {
 });
 
 
+
+
 const deleteEvent = asyncHandler(async (req, res) => {
     const { id } = req.params;  // Assuming the event ID is in the URL parameters
     console.log(id);
@@ -725,22 +727,25 @@ const searchEvents = asyncHandler(async (req, res) => {
 //   });
   
 const sendNotification = asyncHandler(async (req, res) => {
-    const { message } = req.body;
-    console.log(message);
+    const { message,latitude,longitude } = req.body;
+    console.log(req.body);
   
     try {
       const users = await User.find({});
       const somePushTokens = [];
   
       for (let user of users) {
-        if (user.notificationtoken) {
-          somePushTokens.push(user.notificationtoken);
+        if (user.notificationtoken && user.currentLatitude && user.currentLongitude) {
+            const distance = Math.sqrt(Math.pow(latitude - user.currentLatitude, 2) + Math.pow(longitude - user.currentLongitude, 2));
+            console.log(distance);
+            if(distance <= 0.1){
+                somePushTokens.push(user.notificationtoken);
+            }
+
         }
       }
-  
       let expo = new Expo({ accessToken: process.env.EXPO_ACCESS_TOKEN });
       const messages = [];
-  
       for (let pushToken of somePushTokens) {
         messages.push({
           to: pushToken,
@@ -801,6 +806,57 @@ const sendNotification = asyncHandler(async (req, res) => {
       });
     }
 });
+
+const deletePost = asyncHandler(async (req, res) => {
+    const { id } = req.params;  // Assuming the event ID is in the URL parameters
+    console.log(id);
+    try {
+        // Find the event by ID and delete it
+        await Post.findByIdAndDelete(id);
+
+        res.status(200).json({
+            success: true,
+            message: "Post deleted successfully",
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Post deletion failed",
+            error: error.message
+        });
+    }
+})
+
+const editPostOfUser = asyncHandler(async (req, res) => {
+    //only post text can be edited
+    const { id } = req.params;
+    const {postText } = req.body;
+    console.log(id, postText);
+    try {
+        const post = await Post.findById(id);
+        if (post) {
+            post.postText = postText;
+            await post.save();
+            res.status(200).json({
+                success: true,
+                message: "Post updated successfully",
+                data: post
+            });
+        } else {
+            res.status(404).json({
+                success: false,
+                message: "Post not found",
+                error: "Post not found with the provided ID"
+            });
+        }
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Post update failed",
+            error: error.message
+        });
+    }
+})
   
 
-export { addMoment, getMoments, getEachMoment, getPost, likeUpdate, disLikeUpdate, getMyMoments, deleteEvent, createPost, getPostFeed,getUserDetails,getWholePosts,interestedUpdate,goingUpdate,contribute,selectLeaderBoard,reactToPhoto,updateEvents,searchEvents,sendNotification};
+export { addMoment, getMoments,editPostOfUser, getEachMoment, getPost, likeUpdate,deletePost, disLikeUpdate, getMyMoments, deleteEvent, createPost, getPostFeed,getUserDetails,getWholePosts,interestedUpdate,goingUpdate,contribute,selectLeaderBoard,reactToPhoto,updateEvents,searchEvents,sendNotification};

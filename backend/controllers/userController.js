@@ -126,21 +126,27 @@ const updateUserProfile = asyncHandler(async (req, res) => {
 
 
 const updateUserProfileNotification = asyncHandler(async (req, res) => {
-  //console.log("updateUserProfile");
-  //onsole.log(req.body);
-  
-  const user = await User.findById(req.body._id);
- // console.log(user)
-  if (user) {
-    user.notificationtoken = req.body.notificationtoken || user.notificationtoken;
-
-    const updatedUser = await user.save();
-
-    res.json({
-      _id: updatedUser._id,
-      notificationtoken: updatedUser.notificationtoken,
+  const {_id,notificationtoken,currentLatitude,currentLongitude } = req.body;
+  try {
+    const user = await User.findByIdAndUpdate(_id, {
+      notificationtoken: notificationtoken,
+      currentLatitude: currentLatitude,
+      currentLongitude: currentLongitude,
+    }, { new: true });
+    console.log(user)
+    res.status(200).json({
+      _id: user._id,
+      firstname: user.firstName,
+      lastname:user.lastName,
+      email: user.email,
+      birthday: user.birthday,
+      bio : user.bio,
+      profilePicture: user.profilePicture,
+      notificationtoken: user.notificationtoken,
+      currentLatitude: user.currentLatitude,
+      currentLongitude: user.currentLongitude,
     });
-  } else {
+  } catch (error) {
     res.status(404);
     throw new Error('User not found');
   }
