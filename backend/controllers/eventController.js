@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import Post from "../models/postFeedModel.js";
 import Comment from "../models/commentModel.js";
 import {Expo} from "expo-server-sdk";
+import Feedback from "../models/feedback.js";
 
 
 
@@ -858,5 +859,27 @@ const editPostOfUser = asyncHandler(async (req, res) => {
     }
 })
   
+const feedbackController = asyncHandler(async (req, res) => {
+    const { userId, userInput, selectedOption, selectedImage } = req.body;
+    try {
+        const feedback = await Feedback.create({
+            userId: userId,
+            userInput: userInput,
+            selectedOption: selectedOption,
+            selectedImage: selectedImage
+        });
+        res.status(201).json({
+            success: true,
+            message: "Feedback added successfully",
+            data: feedback
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Feedback creation failed",
+            error: error.message
+        });
+    }
+});
 
-export { addMoment, getMoments,editPostOfUser, getEachMoment, getPost, likeUpdate,deletePost, disLikeUpdate, getMyMoments, deleteEvent, createPost, getPostFeed,getUserDetails,getWholePosts,interestedUpdate,goingUpdate,contribute,selectLeaderBoard,reactToPhoto,updateEvents,searchEvents,sendNotification};
+export { addMoment, getMoments,editPostOfUser,feedbackController, getEachMoment, getPost, likeUpdate,deletePost, disLikeUpdate, getMyMoments, deleteEvent, createPost, getPostFeed,getUserDetails,getWholePosts,interestedUpdate,goingUpdate,contribute,selectLeaderBoard,reactToPhoto,updateEvents,searchEvents,sendNotification};
