@@ -5,6 +5,9 @@ import {
   logoutUser,
   getUserProfile,
   updateUserProfile,
+  sendVerificationCode,
+  resetPassword,
+  verifyCode,
   updateUserProfileNotification,
 } from '../controllers/userController.js';
 import { protect } from '../middleware/authMiddleware.js';
@@ -17,6 +20,9 @@ router.post('/logout', logoutUser);
 router.put('/profile',updateUserProfile);
 router.put('/profilenotify',updateUserProfileNotification);
 router.get('/ownerprofile/:id',getUserProfile);
+router.post('/verify',verifyCode);
+router.post('/send',sendVerificationCode);
+router.post('/reset',resetPassword);
   // .get(protect, getUserProfile)
   // .put(protect, updateUserProfile);
 

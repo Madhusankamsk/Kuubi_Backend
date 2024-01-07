@@ -88,16 +88,20 @@ const eventSchema = mongoose.Schema(
             type: [Number],
             default: [],
         },
-        gallery: [{
-            photoUrl: {
-                type: String,
-                required: true,
-            },
-            reactedUsers: {
-                type: [String],
-                default: [],
-            }
-        }],
+        // gallery: [{
+        //     photoUrl: {
+        //         type: String,
+        //         required: true,
+        //     },
+        //     reactedUsers: {
+        //         type: [String],
+        //         default: [],
+        //     }
+        // }],
+        gallery: {
+            type: [String],
+            default: [],
+        },
         interested: {
             type: [String],
             default: [],

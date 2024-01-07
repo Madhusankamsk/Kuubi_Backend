@@ -38,7 +38,7 @@ new CronJob('0 8 * * *', async function() {
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   }
-  const tomorrow = new Date(new Date().setDate(new Date().getDate() + 2));
+  const tomorrow = new Date(new Date().setDate(new Date().getDate() + 1));
   const formattedDate = formatDate(tomorrow);
   
   console.log(formattedDate);
@@ -55,7 +55,7 @@ new CronJob('0 8 * * *', async function() {
       messages.push({
         to: userNotificationToken.notificationtoken,
         sound: 'default',
-        body: `You have an event tomorrow! ${event.eventname} at ${event.time}`,
+        body: `You have an event on ${event.date}! ${event.eventname} at ${event.time}`,
         data: { withSome: 'data' },
       });
       let chunks = expo.chunkPushNotifications(messages);
@@ -82,7 +82,7 @@ new CronJob('0 8 * * *', async function() {
       messages.push({
         to: userNotificationToken.notificationtoken,
         sound: 'default',
-        body: `You have an interested event tomorrow! ${event.eventname} at ${event.time}`,
+        body: `You have an interested event on ${event.date}! ${event.eventname} at ${event.time}`,
         data: { withSome: 'data' },
       });
       let chunks = expo.chunkPushNotifications(messages);
@@ -101,7 +101,7 @@ new CronJob('0 8 * * *', async function() {
     });
   });
 
-}, null, true, 'America/Los_Angeles');
+}, null, true, 'Asia/Kolkata');
 
 
 if (process.env.NODE_ENV === 'production') {

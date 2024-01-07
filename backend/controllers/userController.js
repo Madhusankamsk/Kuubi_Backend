@@ -1,6 +1,7 @@
 import asyncHandler from 'express-async-handler';
 import User from '../models/userModel.js';
 import generateToken from '../utils/generateToken.js';
+import nodemailer from 'nodemailer';
 
 // @desc    Auth user & get token
 // @route   POST /api/users/auth
@@ -15,7 +16,7 @@ const authUser = asyncHandler(async (req, res) => {
       _id: user._id,
       name: user.name,
       email: user.email,
-      token : generateToken(res, user._id),
+      token: generateToken(res, user._id),
     });
   } else {
     res.status(401);
@@ -27,9 +28,9 @@ const authUser = asyncHandler(async (req, res) => {
 // @route   POST /api/users
 // @access  Public
 const registerUser = asyncHandler(async (req, res) => {
-  const { firstName,lastName,email,password,birthday,profilePicture } = req.body;
+  const { firstName, lastName, email, password, birthday, profilePicture } = req.body;
   console.log(profilePicture)
- // console.log(req.body);
+  // console.log(req.body);
   const userExists = await User.findOne({ email });
 
   if (userExists) {
@@ -76,15 +77,15 @@ const logoutUser = (req, res) => {
 const getUserProfile = asyncHandler(async (req, res) => {
   //console.log("getUserProfile",req.params.id)
   const user = await User.findById(req.params.id);
- // console.log(user)
+  // console.log(user)
   if (user) {
     res.json({
       _id: user._id,
       firstname: user.firstName,
-      lastname:user.lastName,
+      lastname: user.lastName,
       email: user.email,
       birthday: user.birthday,
-      bio : user.bio,
+      bio: user.bio,
       profilePicture: user.profilePicture,
 
     });
@@ -98,24 +99,24 @@ const getUserProfile = asyncHandler(async (req, res) => {
 // @route   PUT /api/users/profile
 // @access  Private
 const updateUserProfile = asyncHandler(async (req, res) => {
-  const {id,firstName,bio,lastName,birthday,profilePicture } = req.body;
+  const { id, firstName, bio, lastName, birthday, profilePicture } = req.body;
   console.log(req.body)
   try {
-   const user = await User.findByIdAndUpdate(id, {
+    const user = await User.findByIdAndUpdate(id, {
       firstName: firstName,
       lastName: lastName,
       birthday: birthday,
       bio: bio,
       profilePicture: profilePicture,
-   }, { new: true });
+    }, { new: true });
     console.log(user)
     res.status(200).json({
       _id: user._id,
       firstname: user.firstName,
-      lastname:user.lastName,
+      lastname: user.lastName,
       email: user.email,
       birthday: user.birthday,
-      bio : user.bio,
+      bio: user.bio,
       profilePicture: user.profilePicture,
     });
   } catch (error) {
@@ -126,7 +127,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
 
 
 const updateUserProfileNotification = asyncHandler(async (req, res) => {
-  const {_id,notificationtoken,currentLatitude,currentLongitude } = req.body;
+  const { _id, notificationtoken, currentLatitude, currentLongitude } = req.body;
   try {
     const user = await User.findByIdAndUpdate(_id, {
       notificationtoken: notificationtoken,
@@ -137,10 +138,10 @@ const updateUserProfileNotification = asyncHandler(async (req, res) => {
     res.status(200).json({
       _id: user._id,
       firstname: user.firstName,
-      lastname:user.lastName,
+      lastname: user.lastName,
       email: user.email,
       birthday: user.birthday,
-      bio : user.bio,
+      bio: user.bio,
       profilePicture: user.profilePicture,
       notificationtoken: user.notificationtoken,
       currentLatitude: user.currentLatitude,
@@ -153,6 +154,107 @@ const updateUserProfileNotification = asyncHandler(async (req, res) => {
 });
 
 
+async function mailer(recieveremail, code) {
+  // console.log("Mailer function called");
+
+  let transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 587,
+
+    secure: false, // true for 465, false for other ports
+    requireTLS: true,
+    auth: {
+      user: process.env.NodeMailer_email, // generated ethereal user
+      pass: process.env.NodeMailer_password, // generated ethereal password
+    },
+  });
+
+
+  let info = await transporter.sendMail({
+    from: "GeekChat",
+    to: `${recieveremail}`,
+    subject: "Email Verification",
+    text: `Your Verification Code is ${code}`,
+    html: `<b>Your Verification Code is ${code}</b>`,
+  })
+
+  console.log("Message sent: %s", info.messageId);
+  console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+}
+
+const codes = {};
+
+const sendVerificationCode = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  try {
+    const user = User.findOne({ email: email });
+    if (user) {
+      const code = Math.floor(100000 + Math.random() * 900000);
+     // mailer(email, code);
+      codes[email] = code;
+      res.status(200).json({
+        code: code,
+      });
+    }
+  }
+  catch (error) {
+    res.status(404);
+    throw new Error('User not found');
+  }
+});
+
+const verifyCode = asyncHandler(async (req, res) => {
+  const { email, code } = req.body;
+  console.log(email, code);
+  try {
+    if (codes[email] == code) {
+      res.status(200).json({
+        message: "Code Verified",
+      });
+    }
+    else {
+      res.status(404);
+      throw new Error('Code not verified');
+    }
+  }
+  catch (error) {
+    res.status(404);
+    throw new Error('User not found');
+  }
+});
+
+
+const resetPassword = asyncHandler(async (req, res) => {
+  const { email, newPassword } = req.body;
+  console.log(email, newPassword);
+  try {
+    // Find the user by email
+    const user = await User.findOne({ email: email });
+    
+    // Check if the user exists
+    if (user) {
+      // Set the new password and save the user
+      user.password = newPassword;
+      await user.save();
+
+      res.status(200).json({
+        message: "Password Reset",
+      });
+    } else {
+      res.status(404);
+      throw new Error('User not found');
+    }
+  } catch (error) {
+    res.status(500).json({
+      error: 'Password reset failed',
+    });
+  }
+});
+
+export default resetPassword;
+
+
+
 
 export {
   authUser,
@@ -160,5 +262,14 @@ export {
   logoutUser,
   getUserProfile,
   updateUserProfile,
+  sendVerificationCode,
+  verifyCode,
+  resetPassword,
   updateUserProfileNotification
 };
+
+
+
+
+
+

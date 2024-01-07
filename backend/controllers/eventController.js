@@ -32,13 +32,16 @@ const addMoment = asyncHandler(async (req, res) => {
         gallery
     } = req.body;
 
-     console.log(req.body);
+
+    
+
+     //console.log(req.body);
 
     const token = req.header('Authorization').replace('Bearer ', '');
     // console.log(token);
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        const newGallery = gallery.map(item => ({ photoUrl: item })); // Create gallery objects
+      //  const newGallery = gallery.map(item => ({ photoUrl: item })); // Create gallery objects
         const userdetails = await User.findById(decoded.userId);
         // console.log(decoded);
         console.log(decoded.userId);
@@ -63,9 +66,10 @@ const addMoment = asyncHandler(async (req, res) => {
             entrancefee,
             features,
             ticketprice,
-            gallery: newGallery
+         //   gallery: newGallery
+            gallery
         });
-       // console.log(newEvent);
+        console.log(newEvent);
         const user = await User.findById(decoded.userId);
         if (user) {
             user.addedMoments.push(newEvent._id); // Assuming newEvent._id is the ObjectId of the newly created event
@@ -300,6 +304,7 @@ const getMyMoments = asyncHandler(async (req, res) => {
     try {
         //whole events list fetch
         const events = await Event.find({ publisherId: id })
+       // console.log(events)
         res.status(200).json({
             success: true,
             message: "Events fetched successfully",
