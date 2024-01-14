@@ -128,6 +128,7 @@ const addMoment = asyncHandler(async (req, res) => {
 const getMoments = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const { latitude, longitude, longitudeDelta, latitudeDelta,selectedDate } = req.body;
+    let currentTime = new Date().toISOString().slice(0, 10);
 
     try {
         let events;
