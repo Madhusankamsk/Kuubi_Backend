@@ -134,7 +134,7 @@ const addMoment = asyncHandler(async (req, res) => {
 
 const getMoments = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const { latitude, longitude, longitudeDelta, latitudeDelta,selectedDate } = req.body;
+    const { latitude, longitude, longitudeDelta, latitudeDelta, selectedDate } = req.body;
 
     try {
         let events;
@@ -147,61 +147,59 @@ const getMoments = asyncHandler(async (req, res) => {
         if (id) {
             if (id === '0') {
                 events = await Event.find({
-                    //when selected date is not null
                     date: selectedDate ? selectedDate : { $gte: new Date().toISOString().slice(0, 10) },
                     latitude: { $gte: minLatitude, $lte: maxLatitude },
                     longitude: { $gte: minLongitude, $lte: maxLongitude },
                 });
-               // console.log(events);
             } else {
                 events = await Event.find({
                     category: id,
-                    //when selected date is not null
                     date: selectedDate ? selectedDate : { $gte: new Date().toISOString().slice(0, 10) },
                     latitude: { $gte: minLatitude, $lte: maxLatitude },
                     longitude: { $gte: minLongitude, $lte: maxLongitude },
                 });
-              //  console.log(events);
             }
         } else {
             events = await Event.find({
-                //when selected date is not null
                 date: selectedDate ? selectedDate : { $gte: new Date().toISOString().slice(0, 10) },
                 latitude: { $gte: minLatitude, $lte: maxLatitude },
                 longitude: { $gte: minLongitude, $lte: maxLongitude },
             });
-           // console.log(events);
         }
 
+        const filteredEvents = [];
 
-        
-        for(let i=0;i<events.length;i++){
+        const colomboTime = new Date().toLocaleString("en-US", { timeZone: "Asia/Colombo" });
+
+        for (let i = 0; i < events.length; i++) {
             let event = events[i];
-            if(event.date == colomboTime.slice(0, 10)){
+            const eventDate = new Date(event.date);
+            const eventStartTime = new Date(`${event.date}T${event.time}`);
+            const eventEndTime = new Date(`${event.date}T${event.endTime}`);
+
+            if (
+                eventDate.toISOString().slice(0, 10) === colomboTime.slice(0, 10) &&
+                eventStartTime <= new Date(colomboTime) &&
+                eventEndTime >= new Date(colomboTime)
+            ) {
                 event.isToday = true;
-                console.log("D",event.eventname);
-                if(event.time <= colomboTime.slice(11, 16) && event.endTime >= colomboTime.slice(11, 16)){
-                    event.isLive = true;
-                    console.log("T",event.eventname);
-                }else{
-                    if(event.endTime < colomboTime.slice(11, 16)){
-                        //this event remove from the list
-                        console.log("F",event.eventname);
-                        events.splice(i,1);
-                    }
-                }
+                event.isLive = true;
+                console.log("T", event.eventname);
+                // Add to filteredEvents
+                filteredEvents.push(event);
+            } else if (eventEndTime >= new Date(colomboTime)) {
+                // Add to filteredEvents
+                filteredEvents.push(event);
+            } else {
+                console.log("F", event.eventname);
             }
         }
-
-     //   console.log(events);
 
         res.status(200).json({
             success: true,
             message: "Events fetched successfully",
-            data: events
+            data: filteredEvents,
         });
-
-
     } catch (error) {
         res.status(500).json({
             success: false,
@@ -210,6 +208,7 @@ const getMoments = asyncHandler(async (req, res) => {
         });
     }
 });
+
 
 const getEachMoment = asyncHandler(async (req, res) => {
     // console.log("cgsffgffgf")
