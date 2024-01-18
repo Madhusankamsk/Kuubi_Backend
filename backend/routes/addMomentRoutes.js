@@ -16,7 +16,7 @@ router.post("/createpost", createPost);
 router.get("/getpostfeed/:id", getPostFeed);
 router.get("/getuser/:id", getUserDetails);
 //router.post("/createcomment", createComment);
-router.get("/getposts/:id", getWholePosts);
+router.get("/getmyposts/:id", getWholePosts);
 router.post("/interested", interestedUpdate);
 router.post("/going", goingUpdate);
 router.post("/contributes", contribute);
