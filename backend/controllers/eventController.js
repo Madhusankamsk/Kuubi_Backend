@@ -5,7 +5,13 @@ import jwt from 'jsonwebtoken';
 import Post from "../models/postFeedModel.js";
 import Comment from "../models/commentModel.js";
 import {Expo} from "expo-server-sdk";
-import Feedback from "../models/feedback.js";
+import Feedback from "../models/feedback.js"
+import moment from 'moment-timezone';
+
+const colomboTime = moment.tz("Asia/Colombo").format('YYYY-MM-DD HH:mm:ss');
+
+console.log(colomboTime.slice(11, 16));
+console.log("date ",colomboTime.slice)
 
 
 
@@ -17,6 +23,8 @@ const addMoment = asyncHandler(async (req, res) => {
         category,
         date,
         time,
+        endTime,
+        duration,
         locationText,
         location,
         latitude,
@@ -32,10 +40,7 @@ const addMoment = asyncHandler(async (req, res) => {
         gallery
     } = req.body;
 
-
-    
-
-     //console.log(req.body);
+     console.log(req.body);
 
     const token = req.header('Authorization').replace('Bearer ', '');
     // console.log(token);
@@ -54,6 +59,8 @@ const addMoment = asyncHandler(async (req, res) => {
             category,
             date,
             time,
+            endTime,
+            duration,
             locationText,
             location,
             latitude,
@@ -128,7 +135,6 @@ const addMoment = asyncHandler(async (req, res) => {
 const getMoments = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const { latitude, longitude, longitudeDelta, latitudeDelta,selectedDate } = req.body;
-    let currentTime = new Date().toISOString().slice(0, 10);
 
     try {
         let events;
@@ -146,7 +152,7 @@ const getMoments = asyncHandler(async (req, res) => {
                     latitude: { $gte: minLatitude, $lte: maxLatitude },
                     longitude: { $gte: minLongitude, $lte: maxLongitude },
                 });
-                console.log(events);
+               // console.log(events);
             } else {
                 events = await Event.find({
                     category: id,
@@ -155,7 +161,7 @@ const getMoments = asyncHandler(async (req, res) => {
                     latitude: { $gte: minLatitude, $lte: maxLatitude },
                     longitude: { $gte: minLongitude, $lte: maxLongitude },
                 });
-                console.log(events);
+              //  console.log(events);
             }
         } else {
             events = await Event.find({
@@ -164,13 +170,38 @@ const getMoments = asyncHandler(async (req, res) => {
                 latitude: { $gte: minLatitude, $lte: maxLatitude },
                 longitude: { $gte: minLongitude, $lte: maxLongitude },
             });
-            console.log(events);
+           // console.log(events);
         }
+
+
+        
+        for(let i=0;i<events.length;i++){
+            let event = events[i];
+            if(event.date == colomboTime.slice(0, 10)){
+                event.isToday = true;
+                console.log("D",event.eventname);
+                if(event.time <= colomboTime.slice(11, 16) && event.endTime >= colomboTime.slice(11, 16)){
+                    event.isLive = true;
+                    console.log("T",event.eventname);
+                }else{
+                    if(event.endTime < colomboTime.slice(11, 16)){
+                        //this event remove from the list
+                        console.log("F",event.eventname);
+                        events.splice(i,1);
+                    }
+                }
+            }
+        }
+
+     //   console.log(events);
+
         res.status(200).json({
             success: true,
-            message: 'Events fetched successfully',
-            data: events,
+            message: "Events fetched successfully",
+            data: events
         });
+
+
     } catch (error) {
         res.status(500).json({
             success: false,
@@ -210,14 +241,40 @@ const getEachMoment = asyncHandler(async (req, res) => {
     }
 });
 const getPost = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    //sri lanka colombo time
+
+    let eventsArray = [];
     try {
-        //whole events list fetch
-        const event = await Event.find({}).sort({ createdAt: -1 });
-        res.status(200).json({
-            success: true,
-            message: "Event fetched successfully",
-            data: event
-        });
+       const user = await User.findById(id);
+         if(user){
+            //compare each events distance with user current location and return
+            const events = await Event.find({});
+            for(let i=0;i<events.length;i++){
+                let event = events[i];
+                const distance = Math.sqrt(Math.pow(user.currentLatitude - event.latitude, 2) + Math.pow(user.currentLongitude - event.longitude, 2));
+                eventsArray.push({event:event ,edate:event.date, distance:distance,marks:0});
+            }
+            eventsArray.sort((a,b)=>a.distance-b.distance);
+            for(let i=0;i<eventsArray.length;i++){
+                eventsArray[i] = eventsArray[i].event;
+            }
+            //today date in sri lanka colombo date
+           // let today = new Date().toISOString().slice(0, 10);
+          //  console.log(today);
+           // console.log(eventsArray);
+            res.status(200).json({
+                success: true,
+                message: "Event fetched successfully",
+                data: eventsArray
+            });
+            // console.log(eventsArray);
+            // for(let i=0;i<eventsArray.length;i++){
+            //     eventsArray[i].marks = ;
+            // }
+         }else{
+                console.log("User not found");
+         }
     } catch (error) {
         res.status(500).json({
             success: false,
@@ -319,9 +376,6 @@ const getMyMoments = asyncHandler(async (req, res) => {
         });
     }
 });
-
-
-
 
 const deleteEvent = asyncHandler(async (req, res) => {
     const { id } = req.params;  // Assuming the event ID is in the URL parameters
@@ -430,7 +484,7 @@ const getWholePosts = asyncHandler(async (req, res) => {
             error: error.message
         })
     }
-  });
+});
 
 //Interested and going process controller create as like dislike process
 const interestedUpdate = asyncHandler(async (req, res) => {
@@ -579,8 +633,6 @@ const selectLeaderBoard = asyncHandler(async (req, res) => {
         });
     }
 });
-
-
 //react to use to find event eventId and photos find by image id and update the reacted users array with user id
 const reactToPhoto = asyncHandler(async (req, res) => {
     const { eventId, imageId, userId } = req.body;
@@ -629,7 +681,6 @@ const reactToPhoto = asyncHandler(async (req, res) => {
     }
 });
 
-
 const updateEvents = asyncHandler(async (req, res) => {
     const { id, userId, eventData } = req.body;
   
@@ -673,7 +724,7 @@ const updateEvents = asyncHandler(async (req, res) => {
         error: error.message,
       });
     }
-  });
+});
 
 const searchEvents = asyncHandler(async (req, res) => {
     const { id } = req.params;

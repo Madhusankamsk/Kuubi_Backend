@@ -34,6 +34,15 @@ const eventSchema = mongoose.Schema(
             type: String,
             required: true,
         },
+        endTime: {
+            type: String,
+            required: true,
+        },
+        duration: {
+            type: String,
+            default: '',
+           // required: true,
+        },
         locationText: {
             type: String,
             // required: true,
@@ -46,6 +55,14 @@ const eventSchema = mongoose.Schema(
             type: Number,
             default: 0,
             // required: true,
+        },
+        isLive: {
+            type: Boolean,
+            default: false,
+        },
+        isToday: {
+            type: Boolean,
+            default: false,
         },
         longitude: {
             type: Number,

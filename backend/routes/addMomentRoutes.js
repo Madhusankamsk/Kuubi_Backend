@@ -7,7 +7,7 @@ const router = express.Router();
 router.post("/add", addMoment);
 router.post("/get/:id", getMoments);
 router.post("/getdata", getEachMoment);
-router.get("/getposts", getPost);
+router.get("/getposts/:id", getPost);
 router.post("/updatelike", likeUpdate);
 router.post("/updatedislike", disLikeUpdate);
 router.post("/getmymoments", getMyMoments);
