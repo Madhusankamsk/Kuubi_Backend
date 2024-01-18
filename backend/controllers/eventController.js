@@ -178,9 +178,11 @@ const getMoments = asyncHandler(async (req, res) => {
             const eventEndTime = new Date(`${event.date}T${event.endTime}`);
 
             if (
-                eventDate.toISOString().slice(0, 10) === colomboTime.slice(0, 10) &&
+                (eventDate.toISOString().slice(0, 10) === colomboTime.slice(0, 10) &&
                 eventStartTime <= new Date(colomboTime) &&
-                eventEndTime >= new Date(colomboTime)
+                eventEndTime >= new Date(colomboTime)) ||
+                (eventDate.toISOString().slice(0, 10) === new Date(colomboTime).toISOString().slice(0, 10) &&
+                eventEndTime >= new Date(colomboTime))
             ) {
                 event.isToday = true;
                 event.isLive = true;
@@ -208,6 +210,7 @@ const getMoments = asyncHandler(async (req, res) => {
         });
     }
 });
+
 
 
 const getEachMoment = asyncHandler(async (req, res) => {
