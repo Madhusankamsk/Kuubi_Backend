@@ -26,7 +26,7 @@ app.use(cookieParser());
 app.use('/api/users', userRoutes);
 app.use('/api/events', addMomentRoutes);
 
-new CronJob('* * * * *', async function () {
+new CronJob('0 8 * * *', async function () {
   console.log('You will see this message every minute');
 
   function formatDate(date) {
