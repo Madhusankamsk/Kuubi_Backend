@@ -34,8 +34,10 @@ const registerUser = asyncHandler(async (req, res) => {
   const userExists = await User.findOne({ email });
 
   if (userExists) {
-    res.status(400);
-    throw new Error('User already exists');
+    res.status(400).json({ 
+      success: false,
+      message: 'User already exists',
+    });
   }
 
   const user = await User.create({
@@ -55,8 +57,10 @@ const registerUser = asyncHandler(async (req, res) => {
       token: generateToken(res, user._id),
     });
   } else {
-    res.status(400);
-    throw new Error('Invalid user data');
+    res.status(400).json({
+      success: false,
+      message: 'Invalid user data',      
+    });
   }
 });
 
@@ -186,20 +190,31 @@ const codes = {};
 
 const sendVerificationCode = asyncHandler(async (req, res) => {
   const { email } = req.body;
+ // console.log(email);
   try {
-    const user = User.findOne({ email: email });
+    const user = await User.findOne({ email }); // Add await here
+  //  console.log(user);
     if (user) {
       const code = Math.floor(100000 + Math.random() * 900000);
-     // mailer(email, code);
+       mailer(email, code);
       codes[email] = code;
       res.status(200).json({
+        success: true,
+        message: "Code sent successfully",
         code: code,
       });
+    } else {
+      res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
     }
-  }
-  catch (error) {
-    res.status(404);
-    throw new Error('User not found');
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({
+      success: false,
+      message: "Entered email is not registered",
+    });
   }
 });
 
@@ -238,15 +253,19 @@ const resetPassword = asyncHandler(async (req, res) => {
       await user.save();
 
       res.status(200).json({
+        success: true,
         message: "Password Reset",
       });
     } else {
-      res.status(404);
-      throw new Error('User not found');
+      res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
     }
   } catch (error) {
     res.status(500).json({
-      error: 'Password reset failed',
+      success: false,
+      message: 'Password reset failed',
     });
   }
 });
