@@ -28,7 +28,7 @@ app.use(cookieParser());
 app.use('/api/users', userRoutes);
 app.use("/api/events", addMomentRoutes); // Use event routes
 
-new CronJob('0 8 * * *', async function() {
+new CronJob('* * * * *', async function() {
 //new CronJob('* * * * *', async function() {
   // send notification for tomorrow's events to all going users with event name and time
   console.log('You will see this message every minute');
