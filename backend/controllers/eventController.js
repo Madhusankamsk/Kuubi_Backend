@@ -4,14 +4,14 @@ import User from "../models/userModel.js";
 import jwt from 'jsonwebtoken';
 import Post from "../models/postFeedModel.js";
 import Comment from "../models/commentModel.js";
-import {Expo} from "expo-server-sdk";
+import { Expo } from "expo-server-sdk";
 import Feedback from "../models/feedback.js"
 import moment from 'moment-timezone';
 
 const colomboTime = moment.tz("Asia/Colombo").format('YYYY-MM-DD HH:mm:ss');
 
 console.log(colomboTime.slice(11, 16));
-console.log("date ",colomboTime.slice)
+console.log("date ", colomboTime.slice)
 
 
 
@@ -40,13 +40,13 @@ const addMoment = asyncHandler(async (req, res) => {
         gallery
     } = req.body;
 
-     console.log(req.body);
+    console.log(req.body);
 
     const token = req.header('Authorization').replace('Bearer ', '');
     // console.log(token);
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      //  const newGallery = gallery.map(item => ({ photoUrl: item })); // Create gallery objects
+        //  const newGallery = gallery.map(item => ({ photoUrl: item })); // Create gallery objects
         const userdetails = await User.findById(decoded.userId);
         // console.log(decoded);
         console.log(decoded.userId);
@@ -73,7 +73,7 @@ const addMoment = asyncHandler(async (req, res) => {
             entrancefee,
             features,
             ticketprice,
-         //   gallery: newGallery
+            //   gallery: newGallery
             gallery
         });
         console.log(newEvent);
@@ -174,7 +174,7 @@ const addMoment = asyncHandler(async (req, res) => {
 //         }
 
 
-        
+
 //         for(let i=0;i<events.length;i++){
 //             let event = events[i];
 //             if(event.date == colomboTime.slice(0, 10)){
@@ -255,7 +255,7 @@ const addMoment = asyncHandler(async (req, res) => {
 //         }
 
 
-        
+
 //         for(let i=0;i<events.length;i++){
 //             let event = events[i];
 //             if(event.date == colomboTime.slice(0, 10)){
@@ -296,94 +296,101 @@ const addMoment = asyncHandler(async (req, res) => {
 const getMoments = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const { latitude, longitude, longitudeDelta, latitudeDelta, selectedDate, justNow } = req.body;
-    console.log("mmmmmmmmmmmmmmmmm", req.body)
- 
+    // console.log("mmmmmmmmmmmmmmmmm", req.body)
+
     try {
-       let events;
- 
-       const minLatitude = latitude - latitudeDelta;
-       const maxLatitude = latitude + latitudeDelta;
-       const minLongitude = longitude - longitudeDelta;
-       const maxLongitude = longitude + longitudeDelta;
- 
-       if (id) {
-          if (id === '0') {
-             events = await Event.find({
+        let events;
+
+        const minLatitude = latitude - latitudeDelta;
+        const maxLatitude = latitude + latitudeDelta;
+        const minLongitude = longitude - longitudeDelta;
+        const maxLongitude = longitude + longitudeDelta;
+
+        if (id) {
+            if (id === '0') {
+                events = await Event.find({
+                    date: selectedDate ? selectedDate : { $gte: new Date().toISOString().slice(0, 10) },
+                    latitude: { $gte: minLatitude, $lte: maxLatitude },
+                    longitude: { $gte: minLongitude, $lte: maxLongitude },
+                }).exec();
+            } else {
+                events = await Event.find({
+                    category: id,
+                    date: selectedDate ? selectedDate : { $gte: new Date().toISOString().slice(0, 10) },
+                    latitude: { $gte: minLatitude, $lte: maxLatitude },
+                    longitude: { $gte: minLongitude, $lte: maxLongitude },
+                }).exec();
+            }
+        } else {
+            events = await Event.find({
                 date: selectedDate ? selectedDate : { $gte: new Date().toISOString().slice(0, 10) },
                 latitude: { $gte: minLatitude, $lte: maxLatitude },
                 longitude: { $gte: minLongitude, $lte: maxLongitude },
-             }).exec();
-          } else {
-             events = await Event.find({
-                category: id,
-                date: selectedDate ? selectedDate : { $gte: new Date().toISOString().slice(0, 10) },
-                latitude: { $gte: minLatitude, $lte: maxLatitude },
-                longitude: { $gte: minLongitude, $lte: maxLongitude },
-             }).exec();
-          }
-       } else {
-          events = await Event.find({
-             date: selectedDate ? selectedDate : { $gte: new Date().toISOString().slice(0, 10) },
-             latitude: { $gte: minLatitude, $lte: maxLatitude },
-             longitude: { $gte: minLongitude, $lte: maxLongitude },
-          }).exec();
-       }
- 
-       events = events.filter((event) => {
-          if (event.date === colomboTime.slice(0, 10)) {
-             event.isToday = true;
-             if (event.time <= colomboTime.slice(11, 16) && event.endTime >= colomboTime.slice(11, 16)) {
-                event.isLive = true;
-             } else {
-                if (event.endTime < colomboTime.slice(11, 16)) {
-                   return false; // Remove this event from the list
+            }).exec();
+        }
+
+
+        console.log(events);
+
+        events = events.filter((event) => {
+            if (event.date === colomboTime.slice(0, 10)) {
+                event.isToday = true;
+                if (event.time <= colomboTime.slice(11, 16) && event.endTime >= colomboTime.slice(11, 16)) {
+                    event.isLive = true;
+                } else {
+                    if (event.endTime < colomboTime.slice(11, 16)) {
+                        return false; // Remove this event from the list
+                    }
                 }
-             }
-          }
-          return true; // Keep the event in the list
-       });
- 
-       // If justNow is true, filter only events where isToday is true and isLive is true
-       if (justNow) {
-          events = events.filter((event) => event.isToday && event.isLive);
-       }
- 
-       res.status(200).json({
-          success: true,
-          message: "Events fetched successfully",
-          data: events,
-       });
+            }
+            return true; // Keep the event in the list
+        });
+
+        // If justNow is true, filter only events where isToday is true and isLive is true
+        if (justNow) {
+            events = events.filter((event) => event.isToday && event.isLive);
+        }
+
+        console.log(events);
+
+        res.status(200).json({
+            success: true,
+            message: "Events fetched successfully",
+            data: events,
+        });
     } catch (error) {
-       res.status(500).json({
-          success: false,
-          message: 'Events fetching failed',
-          error: error.message,
-       });
+        res.status(500).json({
+            success: false,
+            message: 'Events fetching failed',
+            error: error.message,
+        });
     }
- });
- 
+});
+
 
 
 const getEachMoment = asyncHandler(async (req, res) => {
     // console.log("cgsffgffgf")
-    const { id,userId } = req.body;
+    const { id, userId } = req.body;
     try {
         //whole events list fetch
         const event = await Event.findById(id)
         console.log(event);
         const user = await User.findById(userId);
-       // console.log("Interested",event.interested.includes(userId));
-      //  console.log("Intere",event.going.includes(userId));
+        // console.log("Interested",event.interested.includes(userId));
+        //  console.log("Intere",event.going.includes(userId));
         res.status(200).json({
             success: true,
             message: "Event fetched successfully",
-            data: { event,
-                    like: event.like.includes(userId), 
-                    dislike: event.dislike.includes(userId),
-                    user:user,
-                    go:event.going.includes(userId),
-                    interested:event.interested.includes(userId)
-                }
+            data: {
+                event,
+                like: event.like.includes(userId),
+                dislike: event.dislike.includes(userId),
+                user: user,
+                go: event.going.includes(userId),
+                interested: event.interested.includes(userId),
+                goingList: event.going,
+            }
         });
     } catch (error) {
         res.status(500).json({
@@ -399,23 +406,23 @@ const getPost = asyncHandler(async (req, res) => {
 
     let eventsArray = [];
     try {
-       const user = await User.findById(id);
-         if(user){
+        const user = await User.findById(id);
+        if (user) {
             //compare each events distance with user current location and return
             const events = await Event.find({});
-            for(let i=0;i<events.length;i++){
+            for (let i = 0; i < events.length; i++) {
                 let event = events[i];
                 const distance = Math.sqrt(Math.pow(user.currentLatitude - event.latitude, 2) + Math.pow(user.currentLongitude - event.longitude, 2));
-                eventsArray.push({event:event ,edate:event.date, distance:distance,marks:0});
+                eventsArray.push({ event: event, edate: event.date, distance: distance, marks: 0 });
             }
-            eventsArray.sort((a,b)=>a.distance-b.distance);
-            for(let i=0;i<eventsArray.length;i++){
+            eventsArray.sort((a, b) => a.distance - b.distance);
+            for (let i = 0; i < eventsArray.length; i++) {
                 eventsArray[i] = eventsArray[i].event;
             }
             //today date in sri lanka colombo date
-           // let today = new Date().toISOString().slice(0, 10);
-          //  console.log(today);
-           // console.log(eventsArray);
+            // let today = new Date().toISOString().slice(0, 10);
+            //  console.log(today);
+            // console.log(eventsArray);
             res.status(200).json({
                 success: true,
                 message: "Event fetched successfully",
@@ -425,9 +432,9 @@ const getPost = asyncHandler(async (req, res) => {
             // for(let i=0;i<eventsArray.length;i++){
             //     eventsArray[i].marks = ;
             // }
-         }else{
-                console.log("User not found");
-         }
+        } else {
+            console.log("User not found");
+        }
     } catch (error) {
         res.status(500).json({
             success: false,
@@ -515,7 +522,7 @@ const getMyMoments = asyncHandler(async (req, res) => {
     try {
         //whole events list fetch
         const events = await Event.find({ publisherId: id })
-       // console.log(events)
+        // console.log(events)
         res.status(200).json({
             success: true,
             message: "Events fetched successfully",
@@ -551,7 +558,7 @@ const deleteEvent = asyncHandler(async (req, res) => {
 });
 
 const createPost = asyncHandler(async (req, res) => {
-    const { eventId, postText, postImages, userId,eventname } = req.body;
+    const { eventId, postText, postImages, userId, eventname } = req.body;
     try {
         // Create a new post
         const newPost = await Post.create({
@@ -559,7 +566,7 @@ const createPost = asyncHandler(async (req, res) => {
             postText: postText,
             postMedia: postImages,
             eventId: eventId,
-            eventname:eventname
+            eventname: eventname
         });
 
         // Update the event's post array with the new post id
@@ -585,7 +592,7 @@ const getPostFeed = asyncHandler(async (req, res) => {
     const { id } = req.params;
     try {
         const event = await Event.findById(id).populate('post').sort({ createdAt: -1 });
-      //  console.log(event.post);
+        //  console.log(event.post);
         res.status(200).json({
             success: true,
             message: "Event fetched successfully",
@@ -597,13 +604,13 @@ const getPostFeed = asyncHandler(async (req, res) => {
             message: "Event fetching failed",
             error: error.message
         });
-    } 
+    }
 });
 
 const getUserDetails = asyncHandler(async (req, res) => {
     const { id } = req.params;
 
-//    console.log("fdsfgff66",id);
+    //    console.log("fdsfgff66",id);
     try {
         const user = await User.findById(id);
         res.status(200).json({
@@ -622,9 +629,9 @@ const getUserDetails = asyncHandler(async (req, res) => {
 
 const getWholePosts = asyncHandler(async (req, res) => {
     const { id } = req.params;
-   // console.log(id);
+    // console.log(id);
     try {
-        const post = await Post.find({publisherId:id}).sort({ createdAt: -1 });
+        const post = await Post.find({ publisherId: id }).sort({ createdAt: -1 });
         res.status(200).json({
             success: true,
             message: "Event fetched successfully",
@@ -641,97 +648,97 @@ const getWholePosts = asyncHandler(async (req, res) => {
 
 //Interested and going process controller create as like dislike process
 const interestedUpdate = asyncHandler(async (req, res) => {
-    
-        const { id, userId } = req.body;
-        try {
-            const event = await Event.findById(id);
-            const user = await User.findById(userId);
-            if (event && user) {
-                if (event.interested.includes(userId) && user.interestedEvents.includes(id)) {
-                    event.interested.pull(userId);
-                    user.interestedEvents.pull(id);
-                } else {
-                    event.interested.push(userId);
-                    user.interestedEvents.push(id);
-                }
-    
-                await event.save();
-                await user.save();
 
-                console.log(event.interested.includes(userId));
-    
-                res.status(200).json({
-                    success: true,
-                    message: "Event interested updated successfully",
-                    data: { event, interest: event.interested.includes(userId) }
-                });
+    const { id, userId } = req.body;
+    try {
+        const event = await Event.findById(id);
+        const user = await User.findById(userId);
+        if (event && user) {
+            if (event.interested.includes(userId) && user.interestedEvents.includes(id)) {
+                event.interested.pull(userId);
+                user.interestedEvents.pull(id);
             } else {
-                res.status(404).json({
-                    success: false,
-                    message: "Event not found",
-                    error: "Event not found with the provided ID"
-                });
+                event.interested.push(userId);
+                user.interestedEvents.push(id);
             }
-        } catch (error) {
-            res.status(500).json({
+
+            await event.save();
+            await user.save();
+
+            console.log(event.interested.includes(userId));
+
+            res.status(200).json({
+                success: true,
+                message: "Event interested updated successfully",
+                data: { event, interest: event.interested.includes(userId) }
+            });
+        } else {
+            res.status(404).json({
                 success: false,
-                message: "Event interested update failed",
-                error: error.message
+                message: "Event not found",
+                error: "Event not found with the provided ID"
             });
         }
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Event interested update failed",
+            error: error.message
+        });
+    }
 });
 
 const goingUpdate = asyncHandler(async (req, res) => {
-        
-            const { id, userId } = req.body;
-            try {
-                const event = await Event.findById(id);
-                const user = await User.findById(userId);
-                if (event && user) {
-                    if (event.going.includes(userId) && user.goingEvents.includes(id)) {
-                        event.going.pull(userId);
-                        user.goingEvents.pull(id);
-                    } else {
-                        event.going.push(userId);
-                        user.goingEvents.push(id);
-                    }
-        
-                    await event.save();
-                    await user.save();
 
-                    //console.log(event.going.includes(userId));
-        
-                    res.status(200).json({
-                        success: true,
-                        message: "Event going updated successfully",
-                        data: { event, go: event.going.includes(userId) }
-                    });
-                } else {
-                    res.status(404).json({
-                        success: false,
-                        message: "Event not found",
-                        error: "Event not found with the provided ID"
-                    });
-                }
-            } catch (error) {
-                res.status(500).json({
-                    success: false,
-                    message: "Event going update failed",
-                    error: error.message
-                });
+    const { id, userId } = req.body;
+    try {
+        const event = await Event.findById(id);
+        const user = await User.findById(userId);
+        if (event && user) {
+            if (event.going.includes(userId) && user.goingEvents.includes(id)) {
+                event.going.pull(userId);
+                user.goingEvents.pull(id);
+            } else {
+                event.going.push(userId);
+                user.goingEvents.push(id);
             }
+
+            await event.save();
+            await user.save();
+
+            //console.log(event.going.includes(userId));
+
+            res.status(200).json({
+                success: true,
+                message: "Event going updated successfully",
+                data: { event, go: event.going.includes(userId) }
+            });
+        } else {
+            res.status(404).json({
+                success: false,
+                message: "Event not found",
+                error: "Event not found with the provided ID"
+            });
+        }
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Event going update failed",
+            error: error.message
+        });
+    }
 });
 
 const contribute = asyncHandler(async (req, res) => {
     //const {userId} = req.params;
-    const {userId} = req.body;
-    console.log("userId",userId);
+    const { userId } = req.body;
+    console.log("userId", userId);
     try {
         const user = await User.findById(userId);
-        if(user){
+        if (user) {
             //get each event id from user going array and return the event details time sorted
-            const events = await Event.find({_id:{$in:user.goingEvents}}).sort({createdAt:-1});
-         //   console.log(events);
+            const events = await Event.find({ _id: { $in: user.goingEvents } }).sort({ createdAt: -1 });
+            //   console.log(events);
             res.status(200).json({
                 success: true,
                 message: "Event fetched successfully",
@@ -749,34 +756,34 @@ const contribute = asyncHandler(async (req, res) => {
 });
 
 const selectLeaderBoard = asyncHandler(async (req, res) => {
-    const {id} = req.params;
+    const { id } = req.params;
     console.log(id);
     try {
         // get all events and post of each users and multiply by 10 and 5 respectively and save the total to the marks in user model and sort by descending order and get top 10 users
-        const users = await User.find({}).sort({createdAt:-1});
+        const users = await User.find({}).sort({ createdAt: -1 });
         let myMarks = 0;
         let fName = '';
         let leaderBoard = [];
-        for(let i=0;i<users.length;i++){
+        for (let i = 0; i < users.length; i++) {
             let user = users[i];
 
-            const events = await Event.find({publisherId:user._id});
-            const posts = await Post.find({publisherId:user._id});
-            let total = events.length*10 + posts.length*5;
-            if(user._id == id){
+            const events = await Event.find({ publisherId: user._id });
+            const posts = await Post.find({ publisherId: user._id });
+            let total = events.length * 10 + posts.length * 5;
+            if (user._id == id) {
                 myMarks = total;
-                fName = user.firstName + " " + user.lastName ;
+                fName = user.firstName + " " + user.lastName;
             }
-           // leaderBoard.push({user:user,total:total});
-            leaderBoard.push({userId:user._id,total:total,firstName:user.firstName,lastName:user.lastName,profilePicture:user.profilePicture});
+            // leaderBoard.push({user:user,total:total});
+            leaderBoard.push({ userId: user._id, total: total, firstName: user.firstName, lastName: user.lastName, profilePicture: user.profilePicture });
         }
-        leaderBoard.sort((a,b)=>b.total-a.total);
-        leaderBoard = leaderBoard.slice(0,10);
+        leaderBoard.sort((a, b) => b.total - a.total);
+        leaderBoard = leaderBoard.slice(0, 10);
         console.log(leaderBoard);
         res.status(200).json({
             success: true,
             message: "LeaderBoard fetched successfully",
-            data: {leaderBoard:leaderBoard,myMarks:myMarks,myName:fName}
+            data: { leaderBoard: leaderBoard, myMarks: myMarks, myName: fName }
         });
     } catch (error) {
         res.status(500).json({
@@ -836,46 +843,46 @@ const reactToPhoto = asyncHandler(async (req, res) => {
 
 const updateEvents = asyncHandler(async (req, res) => {
     const { id, userId, eventData } = req.body;
-  
+
     try {
-      // First, check if the user (userId) has permission to update the event with the given id
-      const event = await Event.findById(id);
-  
-      if (!event) {
-        return res.status(404).json({
-          success: false,
-          message: 'Event not found',
+        // First, check if the user (userId) has permission to update the event with the given id
+        const event = await Event.findById(id);
+
+        if (!event) {
+            return res.status(404).json({
+                success: false,
+                message: 'Event not found',
+            });
+        }
+
+        if (event.publisherId !== userId) {
+            return res.status(403).json({
+                success: false,
+                message: 'Permission denied. You are not the publisher of this event.',
+            });
+        }
+
+        // Now, update the event data
+        const updatedEvent = await Event.findByIdAndUpdate(id, eventData, { new: true });
+
+        if (!updatedEvent) {
+            return res.status(500).json({
+                success: false,
+                message: 'Event update failed',
+            });
+        }
+        console.log("Done")
+        res.status(200).json({
+            success: true,
+            message: 'Event updated successfully',
+            data: updatedEvent,
         });
-      }
-  
-      if (event.publisherId !== userId) {
-        return res.status(403).json({
-          success: false,
-          message: 'Permission denied. You are not the publisher of this event.',
-        });
-      }
-  
-      // Now, update the event data
-      const updatedEvent = await Event.findByIdAndUpdate(id, eventData, { new: true });
-  
-      if (!updatedEvent) {
-        return res.status(500).json({
-          success: false,
-          message: 'Event update failed',
-        });
-      }
-      console.log("Done")
-      res.status(200).json({
-        success: true,
-        message: 'Event updated successfully',
-        data: updatedEvent,
-      });
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: 'Event update failed',
-        error: error.message,
-      });
+        res.status(500).json({
+            success: false,
+            message: 'Event update failed',
+            error: error.message,
+        });
     }
 });
 
@@ -883,7 +890,7 @@ const searchEvents = asyncHandler(async (req, res) => {
     const { id } = req.params;
     console.log(id);
     try {
-        const events = await Event.find({eventname:{$regex:id,$options:'i'}})
+        const events = await Event.find({ eventname: { $regex: id, $options: 'i' } })
         res.status(200).json({
             success: true,
             message: "Event fetched successfully",
@@ -902,20 +909,20 @@ const searchEvents = asyncHandler(async (req, res) => {
 // const sendNotification = asyncHandler(async (req, res) => {
 //     const { message } = req.body;
 //     console.log(message);
-  
+
 //     try {
 //       const users = await User.find({});
 //       const somePushTokens = [];
-  
+
 //       for (let user of users) {
 //         if (user.notificationtoken) {
 //           somePushTokens.push(user.notificationtoken);
 //         }
 //       }
-  
+
 //       let expo = new Expo({ accessToken: process.env.EXPO_ACCESS_TOKEN });
 //       const messages = [];
-  
+
 //       for (let pushToken of somePushTokens) {
 //         messages.push({
 //           to: pushToken,
@@ -925,7 +932,7 @@ const searchEvents = asyncHandler(async (req, res) => {
 //           data: { withSome: 'data' },
 //         });
 //       }
-  
+
 //         await expo.sendPushNotificationsAsync([message]);
 //       res.status(200).json({ success: true, message: 'Notification sent successfully' });
 //     } catch (error) {
@@ -936,36 +943,36 @@ const searchEvents = asyncHandler(async (req, res) => {
 //       });
 //     }
 //   });
-  
-const sendNotification = asyncHandler(async (req, res) => {
-    const { message,latitude,longitude } = req.body;
-    console.log(req.body);
-  
-    try {
-      const users = await User.find({});
-      const somePushTokens = [];
-  
-      for (let user of users) {
-        if (user.notificationtoken && user.currentLatitude && user.currentLongitude) {
-            const distance = Math.sqrt(Math.pow(latitude - user.currentLatitude, 2) + Math.pow(longitude - user.currentLongitude, 2));
-            console.log(distance);
-            if(distance <= 0.1){
-                somePushTokens.push(user.notificationtoken);
-            }
 
+const sendNotification = asyncHandler(async (req, res) => {
+    const { message, latitude, longitude } = req.body;
+    console.log(req.body);
+
+    try {
+        const users = await User.find({});
+        const somePushTokens = [];
+
+        for (let user of users) {
+            if (user.notificationtoken && user.currentLatitude && user.currentLongitude) {
+                const distance = Math.sqrt(Math.pow(latitude - user.currentLatitude, 2) + Math.pow(longitude - user.currentLongitude, 2));
+                console.log(distance);
+                if (distance <= 0.1) {
+                    somePushTokens.push(user.notificationtoken);
+                }
+
+            }
         }
-      }
-      let expo = new Expo({ accessToken: process.env.EXPO_ACCESS_TOKEN });
-      const messages = [];
-      for (let pushToken of somePushTokens) {
-        messages.push({
-          to: pushToken,
-          sound: 'default',
-          title: 'New Event Suggestion for you !',
-          body: message.body,
-          data: { withSome: 'data' },
-        });
-      }
+        let expo = new Expo({ accessToken: process.env.EXPO_ACCESS_TOKEN });
+        const messages = [];
+        for (let pushToken of somePushTokens) {
+            messages.push({
+                to: pushToken,
+                sound: 'default',
+                title: 'New Event Suggestion for you !',
+                body: message.body,
+                data: { withSome: 'data' },
+            });
+        }
 
         const chunks = expo.chunkPushNotifications(messages);
         const tickets = [];
@@ -1009,12 +1016,12 @@ const sendNotification = asyncHandler(async (req, res) => {
         })();
         res.status(200).json({ success: true, message: 'Notification sent successfully' });
 
-      } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: "Notification sending failed",
-        error: error.message
-      });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Notification sending failed",
+            error: error.message
+        });
     }
 });
 
@@ -1041,7 +1048,7 @@ const deletePost = asyncHandler(async (req, res) => {
 const editPostOfUser = asyncHandler(async (req, res) => {
     //only post text can be edited
     const { id } = req.params;
-    const {postText } = req.body;
+    const { postText } = req.body;
     console.log(id, postText);
     try {
         const post = await Post.findById(id);
@@ -1068,7 +1075,7 @@ const editPostOfUser = asyncHandler(async (req, res) => {
         });
     }
 })
-  
+
 const feedbackController = asyncHandler(async (req, res) => {
     const { userId, userInput, selectedOption, selectedImage } = req.body;
     try {
@@ -1092,4 +1099,39 @@ const feedbackController = asyncHandler(async (req, res) => {
     }
 });
 
-export { addMoment, getMoments,editPostOfUser,feedbackController, getEachMoment, getPost, likeUpdate,deletePost, disLikeUpdate, getMyMoments, deleteEvent, createPost, getPostFeed,getUserDetails,getWholePosts,interestedUpdate,goingUpdate,contribute,selectLeaderBoard,reactToPhoto,updateEvents,searchEvents,sendNotification};
+const goinglistController = asyncHandler(async (req, res) => {
+    const { goingList } = req.body;
+    let goingListData = [];
+
+    try {
+        for (let i = 0; i < goingList.length; i++) {
+            const user = await User.findById(goingList[i]);
+            if (user) {
+                goingListData.push({ username: user.firstName + " " + user.lastName, profilePicture: user.profilePicture, userId: user._id });
+            }
+        }
+
+        // Sort the array in alphabetical order based on the username
+      //  goingListData.sort((a, b) => a.username.localeCompare(b.username));
+
+        console.log(goingListData);
+        res.status(200).json({
+            success: true,
+            message: "Going list fetched successfully",
+            data: goingListData
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Going list fetching failed",
+            error: error.message
+        });
+    }
+
+    console.log(goingListData);
+});
+
+
+
+
+export { addMoment, getMoments, editPostOfUser, goinglistController, feedbackController, getEachMoment, getPost, likeUpdate, deletePost, disLikeUpdate, getMyMoments, deleteEvent, createPost, getPostFeed, getUserDetails, getWholePosts, interestedUpdate, goingUpdate, contribute, selectLeaderBoard, reactToPhoto, updateEvents, searchEvents, sendNotification };

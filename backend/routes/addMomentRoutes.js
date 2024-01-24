@@ -1,5 +1,5 @@
 import express from "express";
-import { addMoment, getMoments,getEachMoment,feedbackController,editPostOfUser,deletePost,getPost,likeUpdate,disLikeUpdate,getMyMoments,deleteEvent,createPost,getPostFeed,getUserDetails,getWholePosts,interestedUpdate,goingUpdate,contribute,selectLeaderBoard,reactToPhoto,updateEvents,searchEvents,sendNotification} from "../controllers/eventController.js"; // Adjust the path
+import { addMoment, getMoments,getEachMoment,goinglistController,feedbackController,editPostOfUser,deletePost,getPost,likeUpdate,disLikeUpdate,getMyMoments,deleteEvent,createPost,getPostFeed,getUserDetails,getWholePosts,interestedUpdate,goingUpdate,contribute,selectLeaderBoard,reactToPhoto,updateEvents,searchEvents,sendNotification} from "../controllers/eventController.js"; // Adjust the path
 
 const router = express.Router();
 
@@ -28,5 +28,6 @@ router.post("/sendnotification", sendNotification);
 router.delete("/deleteposts/:id", deletePost);
 router.put("/editposts/:id", editPostOfUser);
 router.post("/sendfeedback", feedbackController);
+router.post("/goinglist", goinglistController);
 
 export default router;
