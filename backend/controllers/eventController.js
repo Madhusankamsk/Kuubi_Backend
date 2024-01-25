@@ -534,7 +534,7 @@ const getMyMoments = asyncHandler(async (req, res) => {
     const { id } = req.body;
     try {
         //whole events list fetch
-        const events = await Event.find({ publisherId: id })
+        const events = await Event.find({ publisherId: id }).sort({ createdAt: -1 });
         // console.log(events)
         res.status(200).json({
             success: true,
