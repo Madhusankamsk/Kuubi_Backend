@@ -8,10 +8,10 @@ import { Expo } from "expo-server-sdk";
 import Feedback from "../models/feedback.js"
 import moment from 'moment-timezone';
 
-const colomboTime = moment.tz("Asia/Colombo").format('YYYY-MM-DD HH:mm:ss');
+//const colomboTime = moment.tz("Asia/Colombo").format('YYYY-MM-DD HH:mm:ss');
 
-console.log(colomboTime.slice(11, 16));
-console.log("date ", colomboTime.slice)
+//console.log(colomboTime.slice(11, 16));
+//console.log("date ", colomboTime.slice)
 
 
 
@@ -295,8 +295,8 @@ const addMoment = asyncHandler(async (req, res) => {
 
 const getMoments = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const { latitude, longitude, longitudeDelta, latitudeDelta, selectedDate, justNow } = req.body;
-    // console.log("mmmmmmmmmmmmmmmmm", req.body)
+    const { latitude, longitude, longitudeDelta, latitudeDelta, selectedDate, justNow, usertime,userDate } = req.body;
+     console.log("mmmmmmmmmmmmmmmmm", req.body)
 
     try {
         let events;
@@ -330,21 +330,34 @@ const getMoments = asyncHandler(async (req, res) => {
         }
 
 
-        console.log(events);
+       // console.log(events);
 
         events = events.filter((event) => {
-            if (event.date === colomboTime.slice(0, 10)) {
+            if (event.date === userDate) {
                 event.isToday = true;
-                if (event.time <= colomboTime.slice(11, 16) && event.endTime >= colomboTime.slice(11, 16)) {
+                if (event.time <= usertime && event.endTime >= usertime) {
                     event.isLive = true;
                 } else {
-                    if (event.endTime < colomboTime.slice(11, 16)) {
+                    if (event.endTime < usertime) {
                         return false; // Remove this event from the list
                     }
                 }
             }
             return true; // Keep the event in the list
         });
+        // events = events.filter((event) => {
+        //     if (event.date === colomboTime.slice(0, 10)) {
+        //         event.isToday = true;
+        //         if (event.time <= colomboTime.slice(11, 16) && event.endTime >= colomboTime.slice(11, 16)) {
+        //             event.isLive = true;
+        //         } else {
+        //             if (event.endTime < colomboTime.slice(11, 16)) {
+        //                 return false; // Remove this event from the list
+        //             }
+        //         }
+        //     }
+        //     return true; // Keep the event in the list
+        // });
 
         // If justNow is true, filter only events where isToday is true and isLive is true
         if (justNow) {
