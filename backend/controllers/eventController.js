@@ -415,8 +415,12 @@ const getEachMoment = asyncHandler(async (req, res) => {
 });
 const getPost = asyncHandler(async (req, res) => {
     const { id } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = 3;
+    const startIndex = (page - 1) * limit;
+    console.log("page", page,limit,startIndex);
     //sri lanka colombo time
-
+    console.log(id)
     let eventsArray = [];
     try {
         const user = await User.findById(id);
@@ -432,6 +436,9 @@ const getPost = asyncHandler(async (req, res) => {
             for (let i = 0; i < eventsArray.length; i++) {
                 eventsArray[i] = eventsArray[i].event;
             }
+
+            const postFeed = eventsArray.slice(startIndex, startIndex + limit);
+            console.log(postFeed);
             //today date in sri lanka colombo date
             // let today = new Date().toISOString().slice(0, 10);
             //  console.log(today);
@@ -439,7 +446,7 @@ const getPost = asyncHandler(async (req, res) => {
             res.status(200).json({
                 success: true,
                 message: "Event fetched successfully",
-                data: eventsArray
+                data: postFeed
             });
             // console.log(eventsArray);
             // for(let i=0;i<eventsArray.length;i++){
@@ -456,6 +463,7 @@ const getPost = asyncHandler(async (req, res) => {
         });
     }
 })
+
 const likeUpdate = asyncHandler(async (req, res) => {
     const { id, userId } = req.body;
     try {
