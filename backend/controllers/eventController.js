@@ -416,7 +416,7 @@ const getEachMoment = asyncHandler(async (req, res) => {
 const getPost = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const page = parseInt(req.query.page) || 1;
-    const limit = 3;
+    const limit = 2;
     const startIndex = (page - 1) * limit;
     console.log("page", page,limit,startIndex);
     //sri lanka colombo time
