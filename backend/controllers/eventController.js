@@ -420,7 +420,7 @@ const getPost = asyncHandler(async (req, res) => {
     const startIndex = (page - 1) * limit;
     console.log("page", page,limit,startIndex);
     //sri lanka colombo time
-    console.log(id)
+ //   console.log(id)
     let eventsArray = [];
     try {
         const user = await User.findById(id);
