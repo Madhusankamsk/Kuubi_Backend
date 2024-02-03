@@ -988,7 +988,7 @@ const sendNotification = asyncHandler(async (req, res) => {
             messages.push({
                 to: pushToken,
                 sound: 'default',
-                title: 'New Event Suggestion for you !',
+                title: message.title,
                 body: message.body,
                 data: { withSome: 'data' },
             });
