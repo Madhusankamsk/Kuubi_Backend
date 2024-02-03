@@ -292,7 +292,6 @@ const addMoment = asyncHandler(async (req, res) => {
 //     }
 // });
 
-
 const getMoments = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const { latitude, longitude, longitudeDelta, latitudeDelta, selectedDate, justNow, usertime,userDate } = req.body;
@@ -380,8 +379,6 @@ const getMoments = asyncHandler(async (req, res) => {
     }
 });
 
-
-
 const getEachMoment = asyncHandler(async (req, res) => {
     // console.log("cgsffgffgf")
     const { id, userId } = req.body;
@@ -416,7 +413,7 @@ const getEachMoment = asyncHandler(async (req, res) => {
 const getPost = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const page = parseInt(req.query.page) || 1;
-    const limit = 2;
+    const limit = 10;
     const startIndex = (page - 1) * limit;
     console.log("page", page,limit,startIndex);
     //sri lanka colombo time
@@ -426,7 +423,9 @@ const getPost = asyncHandler(async (req, res) => {
         const user = await User.findById(id);
         if (user) {
             //compare each events distance with user current location and return
-            const events = await Event.find({});
+            const events = await Event.find({
+                date: { $gte: new Date().toISOString().slice(0, 10)} ,
+            }).exec();
             for (let i = 0; i < events.length; i++) {
                 let event = events[i];
                 const distance = Math.sqrt(Math.pow(user.currentLatitude - event.latitude, 2) + Math.pow(user.currentLongitude - event.longitude, 2));
